@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { StorageService } from '../services/StorageService';
+import { useI18n } from '../i18n/i18n';   // ★ 多言語対応
 
 // ─────────────────────────────────────────
 // 定数
@@ -25,49 +26,21 @@ const CHAIN_COLORS = {
 };
 const CHAIN_TEXT = { SOL: '#000', BNB: '#000', POL: '#fff' };
 
-const CATEGORY_LABELS = {
-  move_result:            '🏃 ムーブ結果',
-  level_up:               '⬆️ レベルアップ',
-  repair_hp:              '❤️ HP修復',
-  repair_durability:      '🔧 Durability修復',
-  marketplace_buy:        '🛒 マーケット購入',
-  marketplace_listing:    '🏷️ 出品中',
-  marketplace_sell:       '💰 マーケット売却',
-  spending_withdraw:      '📤 Spending出金',
-  spending_deposit:       '📥 Spending入金',
-  shoe_mint_cost:         '👟 ミントコスト',
-  shoe_mint_result:       '👟 ミント結果',
-  shoe_enhance:           '✨ シューズ強化',
-  socket_unlock:          '🔓 ソケット解放',
-  gem_upgrade_success:    '💎 ジェムUP成功',
-  gem_upgrade_fail:       '💎 ジェムUP失敗',
-  gem_upgrade_confirm:    '💎 ジェムUP(結果待ち)',
-  mystery_box_open:       '📦 MBオープン（コスト）',
-  mb_result:              '🎁 MB開封結果',
-  success_rate_increment: '📈 成功率UP',
-  point_redistribution:   '🔄 ポイント振直し',
-  vip_membership:         '👑 VIPメンバー',
-  home:                   '🏠 ホーム画面',
-  unknown:                '❓ 不明',
-};
-
-const TABS = [
-  { key: 'all',     label: '📋 ALL' },
-  { key: 'income',  label: '💚 収入' },
-  { key: 'expense', label: '🔴 支出' },
-  { key: 'info',    label: '⚪ 情報' },
-  { key: 'listing', label: '🏷️ 売却中' },
-  { key: 'pending', label: '⚠️ 仮保存' },
-  { key: 'history', label: '📝 修正履歴' },
-];
+const TAB_KEYS = ['all', 'income', 'expense', 'info', 'listing', 'pending', 'history'];
 
 // ─────────────────────────────────────────
 // RecordListScreen
 // ─────────────────────────────────────────
 
 export default function RecordListScreen({ navigation, route }) {
+  const { t, lang } = useI18n();   // ★ 多言語対応
   const initTab = route.params?.tab ?? 'all';
   const initChain = route.params?.chain ?? 'ALL';
+
+  // ヘッダータイトルを現在の言語で更新（言語切替に即反応）
+  useEffect(() => {
+    navigation.setOptions({ title: t('nav_recordlist') });
+  }, [navigation, lang]);
 
   const [activeTab,     setActiveTab]     = useState(initTab);
   const [chainFilter,   setChainFilter]   = useState(initChain);
@@ -148,12 +121,12 @@ export default function RecordListScreen({ navigation, route }) {
   const handleDeleteSelected = () => {
     if (selected.size === 0) return;
     Alert.alert(
-      '削除確認',
-      `選択した ${selected.size} 件を削除しますか？\nこの操作は取り消せません。`,
+      t('alert_delete_title'),
+      t('alert_delete_msg', selected.size),
       [
-        { text: 'キャンセル', style: 'cancel' },
+        { text: t('btn_cancel'), style: 'cancel' },
         {
-          text: '削除する',
+          text: t('btn_delete'),
           style: 'destructive',
           onPress: async () => {
             try {
@@ -171,7 +144,7 @@ export default function RecordListScreen({ navigation, route }) {
               setSelected(new Set());
               loadData();
             } catch (e) {
-              Alert.alert('エラー', '削除に失敗したで');
+              Alert.alert(t('alert_error_title'), t('delete_fail_msg'));
             }
           },
         },
@@ -184,26 +157,26 @@ export default function RecordListScreen({ navigation, route }) {
   const handleConfirmPending = async (pendingId) => {
     const chain = pendingChains[pendingId];
     if (!chain) {
-      Alert.alert('エラー', 'チェーンを選択してや！');
+      Alert.alert(t('alert_error_title'), t('chain_required_msg'));
       return;
     }
     try {
       await StorageService.confirmPending(pendingId, chain);
-      Alert.alert('完了', `${chain}チェーンで正式保存したで！`);
+      Alert.alert(t('alert_done_title'), t('confirm_pending_success', chain));
       loadData();
     } catch (e) {
-      Alert.alert('エラー', '保存に失敗したで');
+      Alert.alert(t('alert_error_title'), t('save_fail_msg'));
     }
   };
 
   const handleDeletePending = (pendingId) => {
     Alert.alert(
-      '削除確認',
-      'この仮保存レコードを削除しますか？',
+      t('alert_delete_title'),
+      t('delete_pending_confirm_msg'),
       [
-        { text: 'キャンセル', style: 'cancel' },
+        { text: t('btn_cancel'), style: 'cancel' },
         {
-          text: '削除する',
+          text: t('btn_delete'),
           style: 'destructive',
           onPress: async () => {
             await StorageService.deletePending(pendingId);
@@ -228,21 +201,21 @@ export default function RecordListScreen({ navigation, route }) {
       <View style={s.tabBar}>
         <FlatList
           horizontal
-          data={TABS}
-          keyExtractor={(t) => t.key}
+          data={TAB_KEYS}
+          keyExtractor={(key) => key}
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={s.tabList}
-          renderItem={({ item: tab }) => (
+          renderItem={({ item: key }) => (
             <TouchableOpacity
-              style={[s.tab, activeTab === tab.key && s.tabActive]}
+              style={[s.tab, activeTab === key && s.tabActive]}
               onPress={() => {
-                setActiveTab(tab.key);
+                setActiveTab(key);
                 setSelectMode(false);
                 setSelected(new Set());
               }}
             >
-              <Text style={[s.tabText, activeTab === tab.key && s.tabTextActive]}>
-                {tab.label}
+              <Text style={[s.tabText, activeTab === key && s.tabTextActive]}>
+                {t('tab_' + key)}
               </Text>
             </TouchableOpacity>
           )}
@@ -253,7 +226,7 @@ export default function RecordListScreen({ navigation, route }) {
       {activeTab === 'history' && (
         <View style={s.placeholderBox}>
           <Text style={s.placeholderEmoji}>📝</Text>
-          <Text style={s.placeholderText}>修正履歴は実装予定やで！</Text>
+          <Text style={s.placeholderText}>{t('history_placeholder')}</Text>
         </View>
       )}
 
@@ -291,7 +264,7 @@ export default function RecordListScreen({ navigation, route }) {
                   onPress={() => setSortOrder((p) => p === 'desc' ? 'asc' : 'desc')}
                 >
                   <Text style={s.sortBtnText}>
-                    {sortOrder === 'desc' ? '🕐 新しい順' : '🕐 古い順'}
+                    {sortOrder === 'desc' ? t('sort_newest') : t('sort_oldest')}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -302,8 +275,8 @@ export default function RecordListScreen({ navigation, route }) {
           <View style={s.actionBar}>
             <Text style={s.countText}>
               {activeTab === 'pending'
-                ? `仮保存：${pending.length}件`
-                : `${records.length}件`}
+                ? t('count_pending', pending.length)
+                : t('count_records', records.length)}
             </Text>
             {activeTab !== 'pending' && (
               <TouchableOpacity
@@ -314,7 +287,7 @@ export default function RecordListScreen({ navigation, route }) {
                 }}
               >
                 <Text style={[s.selectBtnText, selectMode && { color: '#000' }]}>
-                  {selectMode ? '✕ キャンセル' : '☑️ 選択'}
+                  {selectMode ? t('select_cancel_btn') : t('select_mode_btn')}
                 </Text>
               </TouchableOpacity>
             )}
@@ -324,14 +297,14 @@ export default function RecordListScreen({ navigation, route }) {
           {selectMode && (
             <View style={s.multiBar}>
               <TouchableOpacity style={s.multiBtn} onPress={handleSelectAll}>
-                <Text style={s.multiBtnText}>全て選択</Text>
+                <Text style={s.multiBtnText}>{t('select_all_btn')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[s.multiBtn, s.multiBtnDanger]}
                 onPress={handleDeleteSelected}
               >
                 <Text style={[s.multiBtnText, { color: '#ff4444' }]}>
-                  🗑️ {selected.size}件削除
+                  {t('delete_selected_btn', selected.size)}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -341,12 +314,12 @@ export default function RecordListScreen({ navigation, route }) {
           {loading ? (
             <View style={s.loadingBox}>
               <ActivityIndicator size="large" color="#00ff88" />
-              <Text style={s.loadingText}>読込中...</Text>
+              <Text style={s.loadingText}>{t('loading_text')}</Text>
             </View>
           ) : currentData.length === 0 ? (
             <View style={s.emptyBox}>
               <Text style={s.emptyEmoji}>📭</Text>
-              <Text style={s.emptyText}>レコードがないで！</Text>
+              <Text style={s.emptyText}>{t('empty_records')}</Text>
             </View>
           ) : (
             <FlatList
@@ -393,7 +366,8 @@ export default function RecordListScreen({ navigation, route }) {
 // ─────────────────────────────────────────
 
 function RecordCard({ item, selectMode, isSelected, onPress }) {
-  const label = CATEGORY_LABELS[item.category] ?? '❓ 不明';
+  const { t } = useI18n();
+  const label = item.category ? t('cat_' + item.category) : t('cat_unknown');
   const chainColor = CHAIN_COLORS[item.chain] ?? '#333';
   const chainText  = CHAIN_TEXT[item.chain]   ?? '#fff';
   const isIncome   = item.type === 'income';
@@ -482,7 +456,8 @@ function RecordCard({ item, selectMode, isSelected, onPress }) {
 // ─────────────────────────────────────────
 
 function PendingCard({ item, selectedChain, onChainSelect, onConfirm, onDelete }) {
-  const label = CATEGORY_LABELS[item.category] ?? '❓ 不明';
+  const { t } = useI18n();
+  const label = item.category ? t('cat_' + item.category) : t('cat_unknown');
   const isIncome = item.type === 'income';
   const amountColor = isIncome ? '#00ff88' : '#ff4444';
   const sign = isIncome ? '+' : '-';
@@ -505,7 +480,7 @@ function PendingCard({ item, selectedChain, onChainSelect, onConfirm, onDelete }
       </View>
 
       {/* チェーン選択 */}
-      <Text style={s.pendingChainLabel}>チェーンを選んでや：</Text>
+      <Text style={s.pendingChainLabel}>{t('pending_select_chain_label')}</Text>
       <View style={s.pendingChainRow}>
         {['SOL', 'BNB', 'POL'].map((c) => {
           const isActive = selectedChain === c;
@@ -537,10 +512,10 @@ function PendingCard({ item, selectedChain, onChainSelect, onConfirm, onDelete }
         >
           <Text style={[s.pendingConfirmText,
             !selectedChain && { color: '#555' }
-          ]}>✅ 正式保存</Text>
+          ]}>{t('confirm_pending_btn')}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={s.pendingDeleteBtn} onPress={onDelete}>
-          <Text style={s.pendingDeleteText}>🗑️ 削除</Text>
+          <Text style={s.pendingDeleteText}>{t('delete_btn')}</Text>
         </TouchableOpacity>
       </View>
     </View>

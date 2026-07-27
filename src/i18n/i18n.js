@@ -406,6 +406,69 @@ const DICT = {
   nav_settings:     { ja: '⚙️ 設定',           en: '⚙️ Settings' },
   nav_guide:        { ja: '📖 使い方ガイド',   en: '📖 How to Use' },
   nav_back:         { ja: '戻る',              en: 'Back' },
+
+  // ─────────────────────────────────────────
+  // RecordListScreen : タブ名（tab_ プレフィックス）
+  // ─────────────────────────────────────────
+  tab_all:      { ja: '📋 ALL',     en: '📋 All' },
+  tab_income:   { ja: '💚 収入',    en: '💚 Income' },
+  tab_expense:  { ja: '🔴 支出',    en: '🔴 Expense' },
+  tab_info:     { ja: '⚪ 情報',    en: '⚪ Info' },
+  tab_listing:  { ja: '🏷️ 売却中', en: '🏷️ Listing' },
+  tab_pending:  { ja: '⚠️ 仮保存', en: '⚠️ Pending' },
+  tab_history:  { ja: '📝 修正履歴', en: '📝 History' },
+
+  // ─────────────────────────────────────────
+  // RecordListScreen : 本文・操作バー
+  // ─────────────────────────────────────────
+  history_placeholder: { ja: '修正履歴は実装予定やで！', en: 'History feature coming soon!' },
+  sort_newest: { ja: '🕐 新しい順', en: '🕐 Newest' },
+  sort_oldest: { ja: '🕐 古い順',   en: '🕐 Oldest' },
+  // タイプB：件数表示
+  count_pending: {
+    ja: (n) => `仮保存：${n}件`,
+    en: (n) => `Pending: ${n}`,
+  },
+  count_records: {
+    ja: (n) => `${n}件`,
+    en: (n) => `${n} records`,
+  },
+  select_mode_btn:   { ja: '☑️ 選択',      en: '☑️ Select' },
+  select_cancel_btn: { ja: '✕ キャンセル', en: '✕ Cancel' },
+  select_all_btn:    { ja: '全て選択',     en: 'Select All' },
+  // タイプB：選択削除ボタン
+  delete_selected_btn: {
+    ja: (n) => `🗑️ ${n}件削除`,
+    en: (n) => `🗑️ Delete ${n}`,
+  },
+  loading_text:   { ja: '読込中...',        en: 'Loading...' },
+  empty_records:  { ja: 'レコードがないで！', en: 'No records!' },
+
+  // アラート（削除・仮保存の正式保存）
+  alert_error_title: { ja: 'エラー', en: 'Error' },
+  alert_done_title:  { ja: '完了',   en: 'Done' },
+  btn_cancel: { ja: 'キャンセル', en: 'Cancel' },
+  btn_delete: { ja: '削除する',   en: 'Delete' },
+  alert_delete_title: { ja: '削除確認', en: 'Delete Confirm' },
+  // タイプB：削除確認メッセージ
+  alert_delete_msg: {
+    ja: (n) => `選択した ${n} 件を削除しますか？\nこの操作は取り消せません。`,
+    en: (n) => `Delete ${n} selected? This cannot be undone.`,
+  },
+  delete_fail_msg: { ja: '削除に失敗したで', en: 'Failed to delete' },
+  chain_required_msg: { ja: 'チェーンを選択してや！', en: 'Please select a chain!' },
+  // タイプB：仮保存の正式保存完了メッセージ
+  confirm_pending_success: {
+    ja: (chain) => `${chain}チェーンで正式保存したで！`,
+    en: (chain) => `Saved with ${chain} chain!`,
+  },
+  save_fail_msg: { ja: '保存に失敗したで', en: 'Failed to save' },
+  delete_pending_confirm_msg: { ja: 'この仮保存レコードを削除しますか？', en: 'Delete this pending record?' },
+
+  // PendingCard
+  pending_select_chain_label: { ja: 'チェーンを選んでや：', en: 'Select a chain:' },
+  confirm_pending_btn: { ja: '✅ 正式保存', en: '✅ Confirm Save' },
+  delete_btn:          { ja: '🗑️ 削除',    en: '🗑️ Delete' },
 };
 
 // ─────────────────────────────────────────
