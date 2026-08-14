@@ -93,7 +93,7 @@ npm install
 ML Kit を含むため、素の Expo Go ではなく **Development Build** が必要です。
 
 ```bash
-npx eas-cli build --profile development --platform android
+set EAS_NO_VCS=1 && npx eas build --profile development --platform android
 ```
 
 ビルドされた APK を Android 実機にインストールします。
@@ -149,15 +149,23 @@ npx --yes esbuild --loader=jsx --log-level=warning --outfile=/dev/null src/scree
 
 ### 🔲 今後
 
-- カテゴリ表記を i18n 辞書に一本化（現在4箇所に重複定義があり、CSV出力側で一部カテゴリのラベルが欠落）
+- カテゴリ表記を i18n 辞書に一本化（現在4箇所に重複定義があり、CSV出力側で11カテゴリのラベルが欠落）
 - 重複ファイルの整理
+- ダーク/ライトテーマ・文字サイズ3段階
+- CSV円換算レート（CoinGecko API）
 
 ---
 
 ## 📖 ドキュメント
 
-開発の詳細な経緯・設計判断・STEPN のドメイン知識は
-[`STEPN_引き継ぎドキュメント_v8_20260814.md`](./STEPN_引き継ぎドキュメント_v8_20260814.md) にまとめています。
+| ドキュメント | 内容 |
+|---|---|
+| [`STEPN_引き継ぎドキュメント_v9_20260814.md`](./STEPN_引き継ぎドキュメント_v9_20260814.md) | **現行版**。仕様・進捗・開発ルール・技術仕様のすべて |
+| [`docs/handoff/`](./docs/handoff/) | 過去の引き継ぎドキュメント（v2〜v8）と全コンテキスト統合アーカイブ |
+| [`docs/reference/`](./docs/reference/) | 初期のJSONスキーマ設計書など参考資料 |
+
+新しくこのプロジェクトに関わる場合は **v9 だけを読めば足ります**。
+過去の経緯を追いたい場合のみ `docs/handoff/` の統合アーカイブを参照してください。
 
 ---
 
