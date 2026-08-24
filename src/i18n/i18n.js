@@ -469,6 +469,91 @@ const DICT = {
   pending_select_chain_label: { ja: 'チェーンを選んでや：', en: 'Select a chain:' },
   confirm_pending_btn: { ja: '✅ 正式保存', en: '✅ Confirm Save' },
   delete_btn:          { ja: '🗑️ 削除',    en: '🗑️ Delete' },
+
+  // ─────────────────────────────────────────
+  // SettingsScreen
+  // ─────────────────────────────────────────
+
+  set_page_title:  { ja: '⚙️ 設定',    en: '⚙️ Settings' },
+  set_chain_title: { ja: '🔗 チェーン', en: '🔗 Chain' },
+
+  // ── 初期残高セクション ──
+  // タイプB：チェーン名が入る
+  set_init_title: {
+    ja: (chain) => `💰 Spending初期残高（${chain}）`,
+    en: (chain) => `💰 Initial Spending Balance (${chain})`,
+  },
+  set_init_hint: {
+    ja: 'このアプリで記録を始める前の残高を入力してや',
+    en: 'Enter your balance from before you started tracking with this app',
+  },
+  set_save_btn:  { ja: '💾 保存する', en: '💾 Save' },
+  set_saved_btn: { ja: '✅ 保存済み', en: '✅ Saved' },
+
+  // Alert（保存結果）
+  set_save_done_title: { ja: '保存完了', en: 'Saved' },
+  // タイプB：チェーン名が入る
+  set_save_done_msg: {
+    ja: (chain) => `${chain}チェーンの初期残高を保存したで！`,
+    en: (chain) => `Saved the initial balance for the ${chain} chain!`,
+  },
+  set_error_title: { ja: 'エラー', en: 'Error' },
+  // タイプB：エラーメッセージが入る
+  set_save_fail_msg: {
+    ja: (msg) => `保存に失敗したで：${msg}`,
+    en: (msg) => `Failed to save: ${msg}`,
+  },
+
+  // ── 残高照合セクション ──
+  // タイプB：チェーン名が入る
+  set_verify_title: {
+    ja: (chain) => `🔍 Spending残高照合（${chain}）`,
+    en: (chain) => `🔍 Verify Spending Balance (${chain})`,
+  },
+  set_verify_hint: {
+    ja: 'STEPNアプリのSpending残高と比較して、差異をチェックするで',
+    en: 'Compare with the Spending balance in the STEPN app to check for differences',
+  },
+  set_calc_label: {
+    ja: '📊 計算残高（初期残高 + 収入 − 支出）',
+    en: '📊 Calculated Balance (Initial + Income − Expense)',
+  },
+  set_actual_hint: {
+    ja: 'STEPNアプリの実際の残高を入力してや',
+    en: 'Enter the actual balance shown in the STEPN app',
+  },
+  set_actual_gst_ph: { ja: '実際のGST残高', en: 'Actual GST balance' },
+  set_actual_gmt_ph: { ja: '実際のGMT残高', en: 'Actual GMT balance' },
+  set_verify_btn:    { ja: '🔍 照合する',  en: '🔍 Verify' },
+  set_result_title:  { ja: '照合結果',     en: 'Result' },
+  set_diff_gst:      { ja: 'GST 差異',     en: 'GST Diff' },
+  set_diff_gmt:      { ja: 'GMT 差異',     en: 'GMT Diff' },
+  set_warn_text: {
+    ja: '⚠️ 差異がある場合、未記録の取引がある可能性があるで。手動入力やスクショ取込で補完してみてや！',
+    en: '⚠️ A difference may mean some transactions are not recorded yet. Try adding them via manual input or screenshot import!',
+  },
+
+  // ── 取扱説明書 ──
+  set_guide_menu: { ja: '📖 取扱説明書（使い方ガイド）', en: '📖 User Guide' },
+
+  // ── 言語セクション（Coming Soon から実装済みに昇格） ──
+  set_lang_title: { ja: '🌐 言語 / Language', en: '🌐 Language / 言語' },
+  set_lang_hint: {
+    ja: '選んだ言語は次回起動時も保持されるで',
+    en: 'Your choice is kept the next time you open the app',
+  },
+
+  // ── 今後のアップデート ──
+  set_coming_title:    { ja: '🚀 今後のアップデート',    en: '🚀 Coming Updates' },
+  set_coming_theme:    { ja: 'テーマ（ダーク / ライト）',  en: 'Theme (Dark / Light)' },
+  set_coming_fontsize: { ja: '文字サイズ（小 / 中 / 大）', en: 'Font Size (S / M / L)' },
+  set_coming_badge:    { ja: 'Coming Soon',             en: 'Coming Soon' },
+
+  // ── アプリ情報 ──
+  //   ※ 固有名詞・技術名は翻訳せず、ラベルのみ多言語化する方針
+  set_app_info_title: { ja: '📱 アプリ情報', en: '📱 App Info' },
+  set_dev_label:      { ja: '開発：',        en: 'Developer: ' },
+  set_tech_label:     { ja: '技術：',        en: 'Tech: ' },
 };
 
 // ─────────────────────────────────────────

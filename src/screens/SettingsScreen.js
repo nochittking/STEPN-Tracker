@@ -1,11 +1,18 @@
 /**
- * SettingsScreen.js
+ * SettingsScreen.js  v3.4.0
  *
  * 設定画面
  * - Spending初期残高（チェーン別）
  * - 残高照合
  * - 取扱説明書リンク
- * - Coming Soonプレースホルダー
+ * - 言語切替（日本語 / English）
+ * - Coming Soonプレースホルダー（テーマ・文字サイズ）
+ *
+ * v3.4.0 変更点：
+ *   - 多言語対応（useI18n）を追加。全文言を t() 経由に変更。
+ *   - 「今後のアップデート」にあった言語切替の Coming Soon 表示を廃止し、
+ *     実際に動く言語セクションへ昇格（HomeScreen のトグルと Context で状態共有）。
+ *   - バージョン表記を constants の APP_VERSION 参照に変更（ベタ書きのズレ防止）。
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -15,10 +22,18 @@ import {
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { StorageService } from '../services/StorageService';
+import { APP_VERSION } from '../constants';
+import { useI18n } from '../i18n/i18n';   // ★ 多言語対応
 
 const CHAIN_COLORS = { SOL: '#9FFB50', BNB: '#F3BA2F', POL: '#9063CD' };
+const LANGS = [
+  { code: 'ja', label: '日本語' },
+  { code: 'en', label: 'English' },
+];
 
 export default function SettingsScreen({ navigation }) {
+  const { t, lang, setLang } = useI18n();   // ★ 多言語対応
+
   const [chain,   setChain]   = useState('SOL');
   const [loading, setLoading] = useState(false);
 
@@ -79,9 +94,9 @@ export default function SettingsScreen({ navigation }) {
       const calc = await StorageService.calcSpendingBalance(chain);
       setCalcGst(calc.gst?.calculated ?? 0);
       setCalcGmt(calc.gmt?.calculated ?? 0);
-      Alert.alert('保存完了', `${chain}チェーンの初期残高を保存したで！`);
+      Alert.alert(t('set_save_done_title'), t('set_save_done_msg', chain));
     } catch (e) {
-      Alert.alert('エラー', `保存に失敗したで：${e.message}`);
+      Alert.alert(t('set_error_title'), t('set_save_fail_msg', e.message));
     }
   };
 
@@ -111,11 +126,11 @@ export default function SettingsScreen({ navigation }) {
       <ScrollView style={s.scroll} contentContainerStyle={{ paddingBottom: 60 }}
                   keyboardShouldPersistTaps="handled">
 
-        <Text style={s.pageTitle}>⚙️ 設定</Text>
+        <Text style={s.pageTitle}>{t('set_page_title')}</Text>
 
         {/* チェーン選択 */}
         <View style={s.section}>
-          <Text style={s.sectionTitle}>🔗 チェーン</Text>
+          <Text style={s.sectionTitle}>{t('set_chain_title')}</Text>
           <View style={s.chainRow}>
             {['SOL', 'BNB', 'POL'].map((c) => (
               <TouchableOpacity
@@ -135,10 +150,10 @@ export default function SettingsScreen({ navigation }) {
         {/* 初期残高 */}
         <View style={s.section}>
           <Text style={s.sectionTitle}>
-            💰 Spending初期残高（{chain}）
+            {t('set_init_title', chain)}
           </Text>
           <Text style={s.hint}>
-            このアプリで記録を始める前の残高を入力してや
+            {t('set_init_hint')}
           </Text>
 
           {loading ? (
@@ -169,7 +184,7 @@ export default function SettingsScreen({ navigation }) {
               </View>
               <TouchableOpacity style={s.saveBtn} onPress={handleSaveBalance}>
                 <Text style={s.saveBtnText}>
-                  {saved ? '✅ 保存済み' : '💾 保存する'}
+                  {saved ? t('set_saved_btn') : t('set_save_btn')}
                 </Text>
               </TouchableOpacity>
             </>
@@ -178,13 +193,13 @@ export default function SettingsScreen({ navigation }) {
 
         {/* 残高照合 */}
         <View style={s.section}>
-          <Text style={s.sectionTitle}>🔍 Spending残高照合（{chain}）</Text>
+          <Text style={s.sectionTitle}>{t('set_verify_title', chain)}</Text>
           <Text style={s.hint}>
-            STEPNアプリのSpending残高と比較して、差異をチェックするで
+            {t('set_verify_hint')}
           </Text>
 
           <View style={s.calcBox}>
-            <Text style={s.calcLabel}>📊 計算残高（初期残高 + 収入 − 支出）</Text>
+            <Text style={s.calcLabel}>{t('set_calc_label')}</Text>
             <View style={s.calcRow}>
               <Text style={s.calcToken}>GST</Text>
               <Text style={s.calcValue}>{fmtNum(calcGst)}</Text>
@@ -196,7 +211,7 @@ export default function SettingsScreen({ navigation }) {
           </View>
 
           <Text style={[s.hint, { marginTop: 12 }]}>
-            STEPNアプリの実際の残高を入力してや
+            {t('set_actual_hint')}
           </Text>
           <View style={s.fieldRow}>
             <Text style={s.fieldLabel}>GST</Text>
@@ -205,7 +220,7 @@ export default function SettingsScreen({ navigation }) {
               value={actualGst}
               onChangeText={(t) => { setActualGst(t); setVerified(false); }}
               keyboardType="numeric"
-              placeholder="実際のGST残高"
+              placeholder={t('set_actual_gst_ph')}
               placeholderTextColor="#555"
             />
           </View>
@@ -216,34 +231,33 @@ export default function SettingsScreen({ navigation }) {
               value={actualGmt}
               onChangeText={(t) => { setActualGmt(t); setVerified(false); }}
               keyboardType="numeric"
-              placeholder="実際のGMT残高"
+              placeholder={t('set_actual_gmt_ph')}
               placeholderTextColor="#555"
             />
           </View>
 
           <TouchableOpacity style={s.verifyBtn} onPress={handleVerify}>
-            <Text style={s.verifyBtnText}>🔍 照合する</Text>
+            <Text style={s.verifyBtnText}>{t('set_verify_btn')}</Text>
           </TouchableOpacity>
 
           {verified && (
             <View style={s.resultBox}>
-              <Text style={s.resultTitle}>照合結果</Text>
+              <Text style={s.resultTitle}>{t('set_result_title')}</Text>
               <View style={s.resultRow}>
-                <Text style={s.resultLabel}>GST 差異</Text>
+                <Text style={s.resultLabel}>{t('set_diff_gst')}</Text>
                 <Text style={[s.resultValue, { color: diffColor(diffGst) }]}>
                   {diffGst >= 0 ? '+' : ''}{fmtNum(diffGst)}{diffIcon(diffGst)}
                 </Text>
               </View>
               <View style={s.resultRow}>
-                <Text style={s.resultLabel}>GMT 差異</Text>
+                <Text style={s.resultLabel}>{t('set_diff_gmt')}</Text>
                 <Text style={[s.resultValue, { color: diffColor(diffGmt) }]}>
                   {diffGmt >= 0 ? '+' : ''}{fmtNum(diffGmt)}{diffIcon(diffGmt)}
                 </Text>
               </View>
               {(Math.abs(diffGst) >= 0.01 || Math.abs(diffGmt) >= 0.01) && (
                 <Text style={s.warnText}>
-                  ⚠️ 差異がある場合、未記録の取引がある可能性があるで。
-                  手動入力やスクショ取込で補完してみてや！
+                  {t('set_warn_text')}
                 </Text>
               )}
             </View>
@@ -255,36 +269,57 @@ export default function SettingsScreen({ navigation }) {
           style={s.menuItem}
           onPress={() => navigation.navigate('Guide')}
         >
-          <Text style={s.menuItemText}>📖 取扱説明書（使い方ガイド）</Text>
+          <Text style={s.menuItemText}>{t('set_guide_menu')}</Text>
           <Text style={s.menuArrow}>›</Text>
         </TouchableOpacity>
 
-        {/* Coming Soon */}
+        {/* 言語切替
+            ※ HomeScreen 右上のトグルと同じ setLang を呼ぶ。
+              言語は LanguageProvider の Context 1本で持っているため、
+              どちらで切り替えても両画面が同時に更新される（状態のズレは起きない）。 */}
         <View style={s.section}>
-          <Text style={s.sectionTitle}>🚀 今後のアップデート</Text>
-          <View style={s.comingItem}>
-            <Text style={s.comingIcon}>🌐</Text>
-            <Text style={s.comingText}>言語切替（日本語 / English）</Text>
-            <Text style={s.comingBadge}>Coming Soon</Text>
-          </View>
-          <View style={s.comingItem}>
-            <Text style={s.comingIcon}>🎨</Text>
-            <Text style={s.comingText}>テーマ（ダーク / ライト）</Text>
-            <Text style={s.comingBadge}>Coming Soon</Text>
-          </View>
-          <View style={s.comingItem}>
-            <Text style={s.comingIcon}>🔤</Text>
-            <Text style={s.comingText}>文字サイズ（小 / 中 / 大）</Text>
-            <Text style={s.comingBadge}>Coming Soon</Text>
+          <Text style={s.sectionTitle}>{t('set_lang_title')}</Text>
+          <Text style={s.hint}>{t('set_lang_hint')}</Text>
+          <View style={s.langRow}>
+            {LANGS.map((l) => {
+              const active = lang === l.code;
+              return (
+                <TouchableOpacity
+                  key={l.code}
+                  style={[s.langBtn, active && s.langBtnActive]}
+                  onPress={() => setLang(l.code)}
+                >
+                  <Text style={[s.langBtnText, active && s.langBtnTextActive]}>
+                    {active ? '✅ ' : ''}{l.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
         </View>
 
-        {/* アプリ情報 */}
+        {/* Coming Soon */}
         <View style={s.section}>
-          <Text style={s.sectionTitle}>📱 アプリ情報</Text>
-          <Text style={s.infoText}>STEPN Tracker v3.2</Text>
-          <Text style={s.infoText}>開発：のっち × Claude</Text>
-          <Text style={s.infoText}>技術：React Native / Expo / ML Kit OCR</Text>
+          <Text style={s.sectionTitle}>{t('set_coming_title')}</Text>
+          <View style={s.comingItem}>
+            <Text style={s.comingIcon}>🎨</Text>
+            <Text style={s.comingText}>{t('set_coming_theme')}</Text>
+            <Text style={s.comingBadge}>{t('set_coming_badge')}</Text>
+          </View>
+          <View style={s.comingItem}>
+            <Text style={s.comingIcon}>🔤</Text>
+            <Text style={s.comingText}>{t('set_coming_fontsize')}</Text>
+            <Text style={s.comingBadge}>{t('set_coming_badge')}</Text>
+          </View>
+        </View>
+
+        {/* アプリ情報
+            ※ 固有名詞・技術名は翻訳せず、ラベルのみ多言語化する方針 */}
+        <View style={s.section}>
+          <Text style={s.sectionTitle}>{t('set_app_info_title')}</Text>
+          <Text style={s.infoText}>STEPN Tracker v{APP_VERSION}</Text>
+          <Text style={s.infoText}>{t('set_dev_label')}のっち × Claude</Text>
+          <Text style={s.infoText}>{t('set_tech_label')}React Native / Expo / ML Kit OCR</Text>
         </View>
 
       </ScrollView>
@@ -346,6 +381,15 @@ const s = StyleSheet.create({
                    marginBottom: 12, flexDirection: 'row', alignItems: 'center' },
   menuItemText:  { fontSize: 14, color: '#fff', flex: 1 },
   menuArrow:     { fontSize: 18, color: '#555' },
+
+  // 言語切替
+  langRow:         { flexDirection: 'row', gap: 10 },
+  langBtn:         { flex: 1, paddingVertical: 10, borderRadius: 8,
+                     borderWidth: 1.5, borderColor: '#333',
+                     backgroundColor: 'transparent', alignItems: 'center' },
+  langBtnActive:   { borderColor: '#00ff88', backgroundColor: '#00ff8822' },
+  langBtnText:     { fontWeight: 'bold', fontSize: 13, color: '#666' },
+  langBtnTextActive: { color: '#00ff88' },
 
   // Coming Soon
   comingItem:    { flexDirection: 'row', alignItems: 'center', paddingVertical: 8,
