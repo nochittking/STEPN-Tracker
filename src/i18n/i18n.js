@@ -554,6 +554,67 @@ const DICT = {
   set_app_info_title: { ja: '📱 アプリ情報', en: '📱 App Info' },
   set_dev_label:      { ja: '開発：',        en: 'Developer: ' },
   set_tech_label:     { ja: '技術：',        en: 'Tech: ' },
+
+  // ─────────────────────────────────────────
+  // CsvExportModal
+  //   ※ ここにあるのは「画面UI」の文言のみ。
+  //     CSVファイルの中身（28列ヘッダー・カテゴリ名・ファイル名）は
+  //     言語設定にかかわらず常に日本語固定とする。
+  //     理由：確定申告用の出力であり、言語を切り替えた前後で列名が変わると
+  //           過去に出力したCSVと結合したときに集計が壊れるため。
+  //     → CsvExportModal.js の buildCsv / CATEGORY_LABELS / buildFilename は
+  //       t() を通さないこと。
+  // ─────────────────────────────────────────
+
+  csv_title:          { ja: '📊 CSV出力',    en: '📊 Export CSV' },
+  csv_section_chain:  { ja: '── チェーン ──', en: '── Chain ──' },
+  csv_section_period: { ja: '── 期間 ──',    en: '── Period ──' },
+
+  // チェーン選択
+  csv_chain_all: { ja: '全チェーン', en: 'All Chains' },
+  // タイプB：チェーン名が入る（SOL のみ / SOL only）
+  csv_chain_only: {
+    ja: (chain) => `${chain} のみ`,
+    en: (chain) => `${chain} only`,
+  },
+
+  // 期間選択
+  //   ※ 「全期間」は既存の label_all を再利用するため、ここでは定義しない
+  // タイプB：年月が入る
+  csv_period_this_month: {
+    ja: (year, month) => `今月（${year}年${month}月）`,
+    en: (year, month) => `This Month (${EN_MONTHS[month - 1]} ${year})`,
+  },
+  // タイプB：年が入る
+  csv_period_this_year: {
+    ja: (year) => `今年（${year}年）`,
+    en: (year) => `This Year (${year})`,
+  },
+  csv_period_custom: { ja: '月を指定', en: 'Pick a Month' },
+
+  // ボタン
+  csv_cancel:     { ja: 'キャンセル', en: 'Cancel' },
+  csv_export_btn: { ja: '出力する',   en: 'Export' },
+
+  // Alert
+  //   ※ 「エラー」タイトルは既存の set_error_title を再利用する
+  csv_err_range:     { ja: '期間の取得に失敗したで', en: 'Failed to determine the period' },
+  csv_no_data_title: { ja: 'データなし',            en: 'No Data' },
+  csv_no_data_msg:   { ja: '該当するレコードがなかったで', en: 'No matching records found' },
+  csv_no_share:      {
+    ja: 'このデバイスでは共有機能が使えへんみたいやで',
+    en: 'Sharing does not seem to be available on this device',
+  },
+  // タイプB：エラーメッセージが入る
+  csv_fail_msg: {
+    ja: (msg) => `CSV出力に失敗したで：${msg}`,
+    en: (msg) => `Failed to export CSV: ${msg}`,
+  },
+  // タイプB：ファイル名が入る（共有シートのタイトル）
+  csv_share_dialog: {
+    ja: (filename) => `${filename} を共有`,
+    en: (filename) => `Share ${filename}`,
+  },
 };
 
 // ─────────────────────────────────────────

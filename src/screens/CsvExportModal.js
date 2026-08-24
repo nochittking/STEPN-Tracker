@@ -1,10 +1,19 @@
 /**
- * CsvExportModal.js
+ * CsvExportModal.js  v3.4.0
  *
  * CSV出力モーダル
  * - チェーン選択（全/SOL/BNB/POL）
  * - 期間選択（今月/今年/全期間/月指定）
  * - CSV生成 → Android共有シートで共有
+ *
+ * v3.4.0 変更点：
+ *   - 画面UIを多言語対応（useI18n）。
+ *   - ★ CSVファイルの中身は多言語化していない。
+ *     buildCsv の28列ヘッダー・CATEGORY_LABELS・buildFilename は
+ *     言語設定にかかわらず常に日本語（およびASCII）のまま固定する。
+ *     理由：確定申告用の出力であり、言語を切り替えた前後で列名が変わると
+ *           過去に出力したCSVと結合したときに集計が壊れるため。
+ *     → 以下の3つは t() を通さないこと。
  *
  * 必要パッケージ（未インストールの場合）:
  *   npx expo install expo-file-system expo-sharing
@@ -18,25 +27,19 @@ import {
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing   from 'expo-sharing';
 import { StorageService } from '../services/StorageService';
+import { useI18n } from '../i18n/i18n';   // ★ 多言語対応
 
 // ─────────────────────────────────────────
 // 定数
+//   ※ ラベルは t() が必要なため、ここではキーのみ保持し、
+//     表示文字列はコンポーネント内で組み立てる
+//     （モジュールスコープでは t() を呼べないため）
 // ─────────────────────────────────────────
 
-const CHAINS = [
-  { key: 'ALL', label: '全チェーン' },
-  { key: 'SOL', label: 'SOL のみ' },
-  { key: 'BNB', label: 'BNB のみ' },
-  { key: 'POL', label: 'POL のみ' },
-];
+const CHAIN_KEYS  = ['ALL', 'SOL', 'BNB', 'POL'];
+const PERIOD_KEYS = ['thisMonth', 'thisYear', 'allTime', 'custom'];
 
-const PERIODS = [
-  { key: 'thisMonth', label: () => { const n=new Date(); return `今月（${n.getFullYear()}年${n.getMonth()+1}月）`; } },
-  { key: 'thisYear',  label: () => `今年（${new Date().getFullYear()}年）` },
-  { key: 'allTime',   label: () => '全期間' },
-  { key: 'custom',    label: () => '月を指定' },
-];
-
+// ★ CSV本文用：言語設定にかかわらず常に日本語。t() を通さないこと。
 const CATEGORY_LABELS = {
   move_result: 'ムーブ結果', level_up: 'レベルアップ',
   repair_hp: 'HP修復', repair_durability: 'Durability修復',
@@ -184,12 +187,29 @@ const buildFilename = (chainKey, periodKey, customYear, customMonthNum) => {
 // ─────────────────────────────────────────
 
 export default function CsvExportModal({ visible, onClose }) {
+  const { t } = useI18n();   // ★ 多言語対応
+
   const now = new Date();
   const [chainKey,       setChainKey]      = useState('ALL');
   const [periodKey,      setPeriodKey]     = useState('thisMonth');
   const [customYear,     setCustomYear]    = useState(now.getFullYear());
   const [customMonthNum, setCustomMonthNum]= useState(now.getMonth() + 1);
   const [exporting,      setExporting]     = useState(false);
+
+  // ラベル組み立て（画面表示用。CSV本文には使わない）
+  const chainLabel = (key) =>
+    key === 'ALL' ? t('csv_chain_all') : t('csv_chain_only', key);
+
+  const periodLabel = (key) => {
+    const n = new Date();
+    switch (key) {
+      case 'thisMonth': return t('csv_period_this_month', n.getFullYear(), n.getMonth() + 1);
+      case 'thisYear':  return t('csv_period_this_year', n.getFullYear());
+      case 'allTime':   return t('label_all');       // HomeScreen と共通のキーを再利用
+      case 'custom':    return t('csv_period_custom');
+      default:          return key;
+    }
+  };
 
   // 月を前後に移動
   const prevMonth = () => {
@@ -207,7 +227,7 @@ export default function CsvExportModal({ visible, onClose }) {
   const handleExport = async () => {
     const range = getPeriodRange(periodKey, customYear, customMonthNum);
     if (range === null) {
-      Alert.alert('エラー', '期間の取得に失敗したで');
+      Alert.alert(t('set_error_title'), t('csv_err_range'));
       return;
     }
 
@@ -220,7 +240,7 @@ export default function CsvExportModal({ visible, onClose }) {
       });
 
       if (records.length === 0) {
-        Alert.alert('データなし', '該当するレコードがなかったで');
+        Alert.alert(t('csv_no_data_title'), t('csv_no_data_msg'));
         return;
       }
 
@@ -234,19 +254,19 @@ export default function CsvExportModal({ visible, onClose }) {
 
       const canShare = await Sharing.isAvailableAsync();
       if (!canShare) {
-        Alert.alert('エラー', 'このデバイスでは共有機能が使えへんみたいやで');
+        Alert.alert(t('set_error_title'), t('csv_no_share'));
         return;
       }
       await Sharing.shareAsync(path, {
         mimeType:    'text/csv',
-        dialogTitle: `${filename} を共有`,
+        dialogTitle: t('csv_share_dialog', filename),
         UTI:         'public.comma-separated-values-text',
       });
 
       onClose();
     } catch (e) {
       console.error('[CsvExportModal] error:', e);
-      Alert.alert('エラー', `CSV出力に失敗したで：${e.message}`);
+      Alert.alert(t('set_error_title'), t('csv_fail_msg', e.message));
     } finally {
       setExporting(false);
     }
@@ -256,41 +276,42 @@ export default function CsvExportModal({ visible, onClose }) {
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <View style={s.overlay}>
         <View style={s.dialog}>
-          <Text style={s.title}>📊 CSV出力</Text>
+          <Text style={s.title}>{t('csv_title')}</Text>
 
           {/* チェーン選択 */}
-          <Text style={s.sectionLabel}>── チェーン ──</Text>
-          {CHAINS.map((c) => (
+          <Text style={s.sectionLabel}>{t('csv_section_chain')}</Text>
+          {CHAIN_KEYS.map((key) => (
             <TouchableOpacity
-              key={c.key}
+              key={key}
               style={s.radioRow}
-              onPress={() => setChainKey(c.key)}
+              onPress={() => setChainKey(key)}
             >
-              <View style={[s.radio, chainKey === c.key && s.radioSelected]} />
-              <Text style={s.radioLabel}>{c.label}</Text>
+              <View style={[s.radio, chainKey === key && s.radioSelected]} />
+              <Text style={s.radioLabel}>{chainLabel(key)}</Text>
             </TouchableOpacity>
           ))}
 
           {/* 期間選択 */}
-          <Text style={[s.sectionLabel, { marginTop: 16 }]}>── 期間 ──</Text>
-          {PERIODS.map((p) => (
-            <View key={p.key}>
+          <Text style={[s.sectionLabel, { marginTop: 16 }]}>{t('csv_section_period')}</Text>
+          {PERIOD_KEYS.map((key) => (
+            <View key={key}>
               <TouchableOpacity
                 style={s.radioRow}
-                onPress={() => setPeriodKey(p.key)}
+                onPress={() => setPeriodKey(key)}
               >
-                <View style={[s.radio, periodKey === p.key && s.radioSelected]} />
-                <Text style={s.radioLabel}>{p.label()}</Text>
+                <View style={[s.radio, periodKey === key && s.radioSelected]} />
+                <Text style={s.radioLabel}>{periodLabel(key)}</Text>
               </TouchableOpacity>
 
               {/* 月指定：矢印ピッカー */}
-              {p.key === 'custom' && periodKey === 'custom' && (
+              {key === 'custom' && periodKey === 'custom' && (
                 <View style={s.monthPicker}>
                   <TouchableOpacity style={s.arrowBtn} onPress={prevMonth}>
                     <Text style={s.arrowText}>◀</Text>
                   </TouchableOpacity>
                   <Text style={s.monthLabel}>
-                    {customYear}年{String(customMonthNum).padStart(2,'0')}月
+                    {/* HomeScreen と共通のキーを再利用（英語は "Aug 2026" 形式） */}
+                    {t('label_month_year', customYear, customMonthNum)}
                   </Text>
                   <TouchableOpacity style={s.arrowBtn} onPress={nextMonth}>
                     <Text style={s.arrowText}>▶</Text>
@@ -303,7 +324,7 @@ export default function CsvExportModal({ visible, onClose }) {
           {/* ボタン */}
           <View style={s.btnRow}>
             <TouchableOpacity style={s.cancelBtn} onPress={onClose} disabled={exporting}>
-              <Text style={s.cancelBtnText}>キャンセル</Text>
+              <Text style={s.cancelBtnText}>{t('csv_cancel')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[s.exportBtn, exporting && { opacity: 0.5 }]}
@@ -312,7 +333,7 @@ export default function CsvExportModal({ visible, onClose }) {
             >
               {exporting
                 ? <ActivityIndicator size="small" color="#000" />
-                : <Text style={s.exportBtnText}>出力する</Text>
+                : <Text style={s.exportBtnText}>{t('csv_export_btn')}</Text>
               }
             </TouchableOpacity>
           </View>
