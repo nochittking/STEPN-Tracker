@@ -16,19 +16,22 @@ import {
 import * as FileSystem from 'expo-file-system/legacy';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StorageService } from '../services/StorageService';
+// ※ 表示ラベルは i18n の cat_* を使う。ここはカテゴリ一覧（キー）の取得のみに使用
 import { CATEGORY_LABELS } from './ImportScreen_constants';
 import { s } from './RecordDetail_styles';
+import { useI18n } from '../i18n/i18n';   // ★ 多言語対応
 
 // ─── 定数 ────────────────────────────────
 const CHAIN_COLORS = { SOL: '#9FFB50', BNB: '#F3BA2F', POL: '#9063CD' };
 const CHAIN_TEXT   = { SOL: '#000',    BNB: '#000',    POL: '#fff'    };
 const CHAINS       = ['SOL', 'BNB', 'POL'];
 
+/** 種別の選択肢（ラベルは RecordListScreen のタブと共通のキーを再利用） */
 const TYPE_OPTIONS = [
-  { key: 'income',  label: '💚 収入' },
-  { key: 'expense', label: '🔴 支出' },
-  { key: 'info',    label: '⚪ 情報' },
-  { key: 'listing', label: '🏷️ 売却中' },
+  { key: 'income',  labelKey: 'group_income'  },
+  { key: 'expense', labelKey: 'group_expense' },
+  { key: 'info',    labelKey: 'group_info'    },
+  { key: 'listing', labelKey: 'group_listing' },
 ];
 
 /** タイムスタンプから YYYY_MM を算出 */
@@ -39,51 +42,22 @@ function ymFromTimestamp(ts) {
   return `${y}_${m}`;
 }
 
-/** フィールドキーを日本語ラベルに変換 */
-function fieldLabel(key) {
-  const labels = {
-    earn_mode: 'アーンモード', earn_amount: '獲得量',
-    move_date: 'ムーブ日時', duration: '時間', distance_km: '距離(km)',
-    en_used: 'EN消費', mb_obtained: 'MB取得', mb_level: 'MBレベル', mb_quality: 'MB品質',
-    hp_before: 'HP修復前', hp_after: 'HP修復後', hp_gained: 'HP増加',
-    durability_before: 'Durability修復前', durability_after: 'Durability修復後',
-    shoe_id: '靴ID', is_genesis: 'Genesis靴',
-    level_after: 'レベル(後)', level_before: 'レベル(前)', wait_mins: '待機時間(分)',
-    socket_type: 'ソケットタイプ', shoe_rarity: '靴レアリティ',
-    gem_type: 'ジェムタイプ', is_rainbow: 'レインボー', rainbow_gem_chance: 'レインボー確率',
-    vip_kept_gem: 'VIPジェム保持', vip_kept_scroll: 'VIPミンスク保持',
-    parent1_id: '親靴1', parent2_id: '親靴2', double_mint_rate: 'ダブルミント率',
-    vip_scroll_chance: 'VIPミンスク確率', is_twin: '双子',
-    box1_rarity: '靴箱1レアリティ', box2_rarity: '靴箱2レアリティ',
-    mb_rarity: 'MBレアリティ', base_cost: 'ベースコスト', boosting_cost: 'ブースティング',
-    unlock_time: '開封時間',
-    transfer_amount: '送金額', transfer_token: 'トークン',
-    fee_amount: '手数料', fee_token: '手数料トークン',
-    from_wallet: '送金元', to_wallet: '送金先',
-    item_type: 'アイテムタイプ', gem_level: 'ジェムLv',
-    gem_attribute: 'ジェムバフ値', scroll_rarity: 'ミンスクレアリティ',
-    shoe_type: '靴タイプ', shoe_level: '靴レベル',
-    price_gmt: '出品価格(GMT)', listing_date: '出品日',
-    rate_type: 'レートタイプ', rainbow_sneaker_chance: 'レインボー靴確率',
-    enhance_result: '強化結果',
-    gst_balance: 'GST残高', gmt_balance: 'GMT残高', earn_mode: 'アーンモード',
-    en_current: 'EN現在', en_max: 'EN最大', en_refill_in: 'EN補充まで',
-    active_shoe_id: '使用中靴ID', active_shoe_type: '靴タイプ',
-    active_shoe_level: '靴レベル', is_vip: 'VIP',
-    valid_until: 'VIP有効期限',
-    points_redistributed: '振り直しポイント', gmt_per_point: 'GMT/ポイント',
-    needs_pixel_scan: 'ピクセル解析', pixel_scan_type: '解析タイプ',
-    result: '結果',
-  };
-  return labels[key] || key;
+/** フィールドキーを表示ラベルに変換
+ *  辞書（i18n の fld_*）に定義があればそれを、無ければ生のキーをそのまま返す。
+ *  ※ t() は未定義キーに対してキー名を返すため、それを判定に使っている。 */
+function fieldLabel(key, t) {
+  const dictKey = `fld_${key}`;
+  const label   = t(dictKey);
+  return label === dictKey ? key : label;
 }
 
 /** 信頼度バッジ */
 function ConfBadge({ score }) {
+  const { t } = useI18n();
   const { label, color } =
-    score >= 0.9 ? { label: '✅ 信頼度高',  color: '#00ff88' } :
-    score >= 0.6 ? { label: '⚠️ 要確認',   color: '#ffaa00' } :
-                   { label: '❓ 要手動確認', color: '#ff4444' };
+    score >= 0.9 ? { label: t('conf_high'), color: '#00ff88' } :
+    score >= 0.6 ? { label: t('conf_mid'),  color: '#ffaa00' } :
+                   { label: t('conf_low'),  color: '#ff4444' };
   return (
     <View style={[s.confBadge, { borderColor: color }]}>
       <Text style={[s.confText, { color }]}>{label}</Text>
@@ -93,6 +67,8 @@ function ConfBadge({ score }) {
 
 // ─── メイン画面 ──────────────────────────
 export default function RecordDetail({ navigation, route }) {
+  const { t } = useI18n();   // ★ 多言語対応
+
   const { record } = route.params;
 
   const [isEditing, setIsEditing]   = useState(false);
@@ -131,25 +107,25 @@ export default function RecordDetail({ navigation, route }) {
       setIsEditing(false);
       navigation.goBack();
     } catch (e) {
-      Alert.alert('保存失敗', e.message);
+      Alert.alert(t('rd_save_fail'), e.message);
     }
   }, [chain, gst, gmt, timestamp, category, type, extra, ym]);
 
   // ── 削除 ──────────────────────────────
   const handleDelete = useCallback(() => {
     Alert.alert(
-      '削除確認',
-      'このレコードを削除してええ？\nこの操作は元に戻せへんで。',
+      t('rd_del_title'),
+      t('rd_del_msg'),
       [
-        { text: 'キャンセル', style: 'cancel' },
+        { text: t('csv_cancel'), style: 'cancel' },
         {
-          text: '削除', style: 'destructive',
+          text: t('rd_del_action'), style: 'destructive',
           onPress: async () => {
             try {
               await StorageService.deleteRecords([record.id], ym);
               navigation.goBack();
             } catch (e) {
-              Alert.alert('削除失敗', e.message);
+              Alert.alert(t('rd_delete_fail'), e.message);
             }
           },
         },
@@ -178,13 +154,13 @@ export default function RecordDetail({ navigation, route }) {
                      paddingTop: 4, paddingBottom: 16, paddingHorizontal: 16,
                      borderBottomWidth: 1, borderBottomColor: '#222' }}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginRight: 12 }}>
-          <Text style={{ color: '#00ff88', fontSize: 16 }}>← 戻る</Text>
+          <Text style={{ color: '#00ff88', fontSize: 16 }}>{t('rd_back')}</Text>
         </TouchableOpacity>
         <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 16, flex: 1 }}>
-          レコード詳細
+          {t('rd_title')}
         </Text>
         <TouchableOpacity onPress={handleDelete} style={s.deleteBtn}>
-          <Text style={s.deleteBtnText}>🗑️ 削除</Text>
+          <Text style={s.deleteBtnText}>{t('delete_btn')}</Text>
         </TouchableOpacity>
       </View>
 
@@ -202,7 +178,7 @@ export default function RecordDetail({ navigation, route }) {
               style={ts.thumbModalImg}
               resizeMode="contain"
             />
-            <Text style={ts.thumbModalClose}>✕ タップで閉じる</Text>
+            <Text style={ts.thumbModalClose}>{t('rd_thumb_close')}</Text>
           </TouchableOpacity>
         </Modal>
       )}
@@ -223,13 +199,13 @@ export default function RecordDetail({ navigation, route }) {
                   style={ts.thumbImg}
                   resizeMode="cover"
                 />
-                <Text style={ts.thumbLabel}>🔍 拡大</Text>
+                <Text style={ts.thumbLabel}>{t('rd_thumb_zoom')}</Text>
               </TouchableOpacity>
             ) : null}
             <View style={{ flex: 1 }}>
               <View style={s.categoryRow}>
                 <Text style={s.categoryText}>
-                  {CATEGORY_LABELS[record.category] ?? record.category}
+                  {t('cat_' + record.category)}
                 </Text>
                 <ConfBadge score={record.confidence ?? 0} />
               </View>
@@ -244,11 +220,11 @@ export default function RecordDetail({ navigation, route }) {
 
         {/* ── 基本情報 ── */}
         <View style={s.section}>
-          <Text style={s.sectionTitle}>基本情報</Text>
+          <Text style={s.sectionTitle}>{t('rd_sec_basic')}</Text>
 
           {/* チェーン */}
           <View style={s.fieldRow}>
-            <Text style={s.fieldLabel}>チェーン</Text>
+            <Text style={s.fieldLabel}>{t('rd_field_chain')}</Text>
             {isEditing ? (
               <View style={s.chainRow}>
                 {CHAINS.map(c => (
@@ -266,14 +242,14 @@ export default function RecordDetail({ navigation, route }) {
               </View>
             ) : (
               <Text style={[s.fieldValue, { color: CHAIN_COLORS[chain] ?? '#888' }]}>
-                {chain ?? '未選択'}
+                {chain ?? t('rd_chain_none')}
               </Text>
             )}
           </View>
 
           {/* 日時 */}
           <View style={s.fieldRow}>
-            <Text style={s.fieldLabel}>日時</Text>
+            <Text style={s.fieldLabel}>{t('rd_field_datetime')}</Text>
             {isEditing ? (
               <TextInput style={s.fieldInput} value={timestamp}
                 onChangeText={setTimestamp} />
@@ -286,7 +262,7 @@ export default function RecordDetail({ navigation, route }) {
 
           {/* GST */}
           <View style={s.fieldRow}>
-            <Text style={s.fieldLabel}>GST金額</Text>
+            <Text style={s.fieldLabel}>{t('rd_field_gst')}</Text>
             {isEditing ? (
               <TextInput style={s.fieldInput} value={gst}
                 onChangeText={setGst} keyboardType="numeric" />
@@ -297,7 +273,7 @@ export default function RecordDetail({ navigation, route }) {
 
           {/* GMT */}
           <View style={s.fieldRow}>
-            <Text style={s.fieldLabel}>GMT金額</Text>
+            <Text style={s.fieldLabel}>{t('rd_field_gmt')}</Text>
             {isEditing ? (
               <TextInput style={s.fieldInput} value={gmt}
                 onChangeText={setGmt} keyboardType="numeric" />
@@ -309,18 +285,18 @@ export default function RecordDetail({ navigation, route }) {
           {/* カテゴリ（編集時のみ変更可） */}
           {isEditing && (
             <View style={{ paddingVertical: 8 }}>
-              <Text style={[s.fieldLabel, { marginBottom: 8 }]}>カテゴリ</Text>
+              <Text style={[s.fieldLabel, { marginBottom: 8 }]}>{t('rd_field_category')}</Text>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
-                {Object.entries(CATEGORY_LABELS)
-                  .filter(([k]) => k !== 'unknown')
-                  .map(([k, v]) => (
+                {Object.keys(CATEGORY_LABELS)
+                  .filter((k) => k !== 'unknown')
+                  .map((k) => (
                     <TouchableOpacity
                       key={k}
                       style={[s.catBtn, category === k && s.catBtnActive]}
                       onPress={() => setCategory(k)}
                     >
                       <Text style={[s.catBtnText, category === k && s.catBtnTextActive]}>
-                        {v}
+                        {t('cat_' + k)}
                       </Text>
                     </TouchableOpacity>
                   ))}
@@ -331,16 +307,17 @@ export default function RecordDetail({ navigation, route }) {
           {/* type（編集時） */}
           {isEditing && (
             <View style={{ paddingVertical: 8 }}>
-              <Text style={[s.fieldLabel, { marginBottom: 8 }]}>種別</Text>
+              <Text style={[s.fieldLabel, { marginBottom: 8 }]}>{t('rd_field_type')}</Text>
               <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
-                {TYPE_OPTIONS.map(t => (
+                {/* ※ 変数名は opt にすること。t にすると i18n の t() を隠してしまう */}
+                {TYPE_OPTIONS.map(opt => (
                   <TouchableOpacity
-                    key={t.key}
-                    style={[s.catBtn, type === t.key && s.catBtnActive]}
-                    onPress={() => setType(t.key)}
+                    key={opt.key}
+                    style={[s.catBtn, type === opt.key && s.catBtnActive]}
+                    onPress={() => setType(opt.key)}
                   >
-                    <Text style={[s.catBtnText, type === t.key && s.catBtnTextActive]}>
-                      {t.label}
+                    <Text style={[s.catBtnText, type === opt.key && s.catBtnTextActive]}>
+                      {t(opt.labelKey)}
                     </Text>
                   </TouchableOpacity>
                 ))}
@@ -352,14 +329,14 @@ export default function RecordDetail({ navigation, route }) {
         {/* ── extra フィールド ── */}
         {Object.keys(extra).length > 0 && (
           <View style={s.section}>
-            <Text style={s.sectionTitle}>詳細情報</Text>
+            <Text style={s.sectionTitle}>{t('rd_sec_detail')}</Text>
             {Object.entries(extra).map(([key, val]) => {
               // 内部フラグ系は表示スキップ
               if (['needs_pixel_scan', 'pixel_scan_type'].includes(key)) return null;
               if (key === 'mb_reward_items' && val === null) return null;
               if (val === null && !isEditing) return (
                 <View key={key} style={s.fieldRow}>
-                  <Text style={s.fieldLabel}>{fieldLabel(key)}</Text>
+                  <Text style={s.fieldLabel}>{fieldLabel(key, t)}</Text>
                   <Text style={s.fieldNull}>N/A</Text>
                 </View>
               );
@@ -369,7 +346,7 @@ export default function RecordDetail({ navigation, route }) {
                 if (typeof val === 'boolean') {
                   return (
                     <View key={key} style={s.toggleRow}>
-                      <Text style={s.fieldLabel}>{fieldLabel(key)}</Text>
+                      <Text style={s.fieldLabel}>{fieldLabel(key, t)}</Text>
                       <Switch
                         value={!!extra[key]}
                         onValueChange={v => setExtraField(key, v)}
@@ -382,7 +359,7 @@ export default function RecordDetail({ navigation, route }) {
                 if (typeof val === 'number') {
                   return (
                     <View key={key} style={s.fieldRow}>
-                      <Text style={s.fieldLabel}>{fieldLabel(key)}</Text>
+                      <Text style={s.fieldLabel}>{fieldLabel(key, t)}</Text>
                       <TextInput
                         style={s.fieldInput}
                         value={String(extra[key] ?? '')}
@@ -395,7 +372,7 @@ export default function RecordDetail({ navigation, route }) {
                 // その他 → テキスト入力
                 return (
                   <View key={key} style={s.fieldRow}>
-                    <Text style={s.fieldLabel}>{fieldLabel(key)}</Text>
+                    <Text style={s.fieldLabel}>{fieldLabel(key, t)}</Text>
                     <TextInput
                       style={s.fieldInput}
                       value={String(extra[key] ?? '')}
@@ -417,21 +394,21 @@ export default function RecordDetail({ navigation, route }) {
                 }).join('\n');
                 return (
                   <View key={key} style={s.fieldRow}>
-                    <Text style={s.fieldLabel}>{fieldLabel(key)}</Text>
+                    <Text style={s.fieldLabel}>{fieldLabel(key, t)}</Text>
                     <Text style={[s.fieldValue, { lineHeight: 20 }]}>{summary}</Text>
                   </View>
                 );
               }
 
               const display =
-                typeof val === 'boolean' ? (val ? '✅ はい' : '❌ いいえ') :
+                typeof val === 'boolean' ? (val ? t('rd_bool_yes') : t('rd_bool_no')) :
                 val === null             ? 'N/A' :
                 Array.isArray(val)       ? JSON.stringify(val) :
                 typeof val === 'object'  ? JSON.stringify(val) :
                 String(val);
               return (
                 <View key={key} style={s.fieldRow}>
-                  <Text style={s.fieldLabel}>{fieldLabel(key)}</Text>
+                  <Text style={s.fieldLabel}>{fieldLabel(key, t)}</Text>
                   <Text style={s.fieldValue}>{display}</Text>
                 </View>
               );
@@ -451,7 +428,7 @@ export default function RecordDetail({ navigation, route }) {
         {isEditing ? (
           <>
             <TouchableOpacity style={s.saveBtn} onPress={handleSave}>
-              <Text style={s.saveBtnText}>💾 保存する</Text>
+              <Text style={s.saveBtnText}>{t('set_save_btn')}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={s.cancelBtn} onPress={() => {
               // 編集をキャンセルして元の値に戻す
@@ -464,12 +441,12 @@ export default function RecordDetail({ navigation, route }) {
               setExtra({ ...(record.extra ?? {}) });
               setIsEditing(false);
             }}>
-              <Text style={s.cancelBtnText}>キャンセル</Text>
+              <Text style={s.cancelBtnText}>{t('csv_cancel')}</Text>
             </TouchableOpacity>
           </>
         ) : (
           <TouchableOpacity style={s.editBtn} onPress={() => setIsEditing(true)}>
-            <Text style={s.editBtnText}>✏️ 編集する</Text>
+            <Text style={s.editBtnText}>{t('rd_edit_btn')}</Text>
           </TouchableOpacity>
         )}
       </View>
