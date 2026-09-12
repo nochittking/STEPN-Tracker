@@ -615,6 +615,44 @@ const DICT = {
     ja: (filename) => `${filename} を共有`,
     en: (filename) => `Share ${filename}`,
   },
+
+  // ─────────────────────────────────────────
+  // ManualInput
+  // ─────────────────────────────────────────
+
+  // ── 手動入力の8大分類 ──
+  //   ※ 「💚 収入」は既存の group_income を再利用するため、ここでは定義しない
+  mgroup_repair:   { ja: '🔧 修復・強化', en: '🔧 Repair & Upgrade' },
+  mgroup_gem:      { ja: '💎 ジェム',     en: '💎 Gems' },
+  mgroup_mint:     { ja: '👟 ミント',     en: '👟 Minting' },
+  mgroup_mb:       { ja: '📦 MB',        en: '📦 MB' },
+  mgroup_market:   { ja: '🏪 マーケット',  en: '🏪 Marketplace' },
+  mgroup_transfer: { ja: '💸 送金',       en: '💸 Transfer' },
+  mgroup_other:    { ja: '⚙️ その他',     en: '⚙️ Other' },
+
+  // ── セクション見出し ──
+  mi_sec_category: { ja: 'カテゴリ',      en: 'CATEGORY' },
+  mi_sec_chain:    { ja: 'チェーン',      en: 'CHAIN' },
+  mi_sec_amount:   { ja: '金額',          en: 'AMOUNT' },
+  mi_sec_datetime: { ja: '日時',          en: 'DATE & TIME' },
+  mi_sec_memo:     { ja: 'メモ（任意）',  en: 'MEMO (OPTIONAL)' },
+
+  // ── 入力欄 ──
+  mi_field_datetime: { ja: '日時',        en: 'When' },
+  mi_datetime_hint:  { ja: '形式：YYYY/MM/DD HH:MM', en: 'Format: YYYY/MM/DD HH:MM' },
+  mi_memo_ph:        { ja: 'メモを入力（任意）',      en: 'Enter a memo (optional)' },
+
+  // ── Alert ──
+  //   ※ 「保存完了」は set_save_done_title、「エラー」は set_error_title、
+  //     「保存に失敗したで：」は set_save_fail_msg、
+  //     「チェーンを選んでや！」は chain_required_msg を再利用する
+  mi_err_title:    { ja: '入力エラー',          en: 'Input Error' },
+  mi_err_no_cat:   { ja: 'カテゴリを選んでや！', en: 'Please select a category!' },
+  mi_err_datetime: {
+    ja: '日時は YYYY/MM/DD HH:MM 形式で入力してや\n例：2026/06/11 14:30',
+    en: 'Enter the date and time as YYYY/MM/DD HH:MM\ne.g. 2026/06/11 14:30',
+  },
+  mi_saved_msg:    { ja: '記録を保存したで！',   en: 'Record saved!' },
 };
 
 // ─────────────────────────────────────────

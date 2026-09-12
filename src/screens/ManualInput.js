@@ -1,10 +1,18 @@
 /**
- * ManualInput.js
+ * ManualInput.js  v3.4.0
  *
  * 手動入力画面
  * - 大分類 → 細分類の2段階カテゴリ選択
  * - チェーン・金額・日時・メモを入力
  * - StorageService.saveRecord で保存
+ *
+ * v3.4.0 変更点：
+ *   - 多言語対応（useI18n）を追加。
+ *   - MANUAL_GROUPS のキーが日本語（'💚 収入' 等）で表示ラベルを兼ねていたため、
+ *     安定キー + 辞書キーを持つ配列構造に変更した。
+ *     （selectedGroup が保持する値も日本語文字列から安定キーに変わっている）
+ *   - カテゴリ名は ImportScreen_constants の CATEGORY_LABELS ではなく
+ *     i18n の cat_* を参照するように変更。
  */
 
 import React, { useState, useRef } from 'react';
@@ -13,7 +21,7 @@ import {
   TextInput, Alert, SafeAreaView,
 } from 'react-native';
 import { StorageService } from '../services/StorageService';
-import { CATEGORY_LABELS } from './ImportScreen_constants';
+import { useI18n } from '../i18n/i18n';   // ★ 多言語対応
 
 // ─────────────────────────────────────────
 // 定数
@@ -21,17 +29,21 @@ import { CATEGORY_LABELS } from './ImportScreen_constants';
 
 const CHAIN_COLORS = { SOL: '#9FFB50', BNB: '#F3BA2F', POL: '#9063CD' };
 
-/** 手動入力用カテゴリグループ */
-const MANUAL_GROUPS = {
-  '💚 収入':     ['move_result', 'mb_result', 'marketplace_sell', 'spending_deposit'],
-  '🔧 修復・強化': ['repair_hp', 'repair_durability', 'level_up', 'socket_unlock', 'shoe_enhance'],
-  '💎 ジェム':   ['gem_upgrade_success', 'gem_upgrade_fail', 'gem_upgrade_confirm'],
-  '👟 ミント':   ['shoe_mint_cost', 'shoe_mint_result'],
-  '📦 MB':      ['mystery_box_open'],
-  '🏪 マーケット':['marketplace_buy', 'marketplace_listing'],
-  '💸 送金':    ['spending_withdraw'],
-  '⚙️ その他':  ['success_rate_increment', 'point_redistribution', 'vip_membership', 'home'],
-};
+/** 手動入力用カテゴリグループ（8大分類 → 22カテゴリ）
+ *  key      : 内部用の安定キー（selectedGroup が保持する値）
+ *  labelKey : i18n の辞書キー
+ *  cats     : そのグループに属するカテゴリ
+ *  ※ カテゴリの構成は引き継ぎドキュメントの MANUAL_GROUPS が正典。変更しないこと。 */
+const MANUAL_GROUPS = [
+  { key: 'income',   labelKey: 'group_income',    cats: ['move_result', 'mb_result', 'marketplace_sell', 'spending_deposit'] },
+  { key: 'repair',   labelKey: 'mgroup_repair',   cats: ['repair_hp', 'repair_durability', 'level_up', 'socket_unlock', 'shoe_enhance'] },
+  { key: 'gem',      labelKey: 'mgroup_gem',      cats: ['gem_upgrade_success', 'gem_upgrade_fail', 'gem_upgrade_confirm'] },
+  { key: 'mint',     labelKey: 'mgroup_mint',     cats: ['shoe_mint_cost', 'shoe_mint_result'] },
+  { key: 'mb',       labelKey: 'mgroup_mb',       cats: ['mystery_box_open'] },
+  { key: 'market',   labelKey: 'mgroup_market',   cats: ['marketplace_buy', 'marketplace_listing'] },
+  { key: 'transfer', labelKey: 'mgroup_transfer', cats: ['spending_withdraw'] },
+  { key: 'other',    labelKey: 'mgroup_other',    cats: ['success_rate_increment', 'point_redistribution', 'vip_membership', 'home'] },
+];
 
 /** カテゴリ → 種別マッピング */
 const CATEGORY_TYPE = {
@@ -47,8 +59,10 @@ const CATEGORY_TYPE = {
   marketplace_listing: 'listing', home: 'info',
 };
 
-const TYPE_LABELS = {
-  income: '💚 収入', expense: '🔴 支出', info: '⚪ 情報', listing: '🏷️ 売却中',
+/** 種別 → i18n辞書キー（RecordListScreen のタブと共通のキーを再利用） */
+const TYPE_LABEL_KEYS = {
+  income: 'group_income', expense: 'group_expense',
+  info:   'group_info',   listing: 'group_listing',
 };
 
 /** 現在時刻を "YYYY/MM/DD HH:MM" 形式で返す */
@@ -75,6 +89,8 @@ const parseDateTime = (str) => {
 // ─────────────────────────────────────────
 
 export default function ManualInput({ navigation, route }) {
+  const { t } = useI18n();   // ★ 多言語対応
+
   const initChain = route.params?.chain ?? 'SOL';
 
   const [selectedGroup,    setSelectedGroup]    = useState(null);
@@ -100,14 +116,14 @@ export default function ManualInput({ navigation, route }) {
 
     // バリデーション
     if (!selectedCategory) {
-      Alert.alert('入力エラー', 'カテゴリを選んでや！'); return;
+      Alert.alert(t('mi_err_title'), t('mi_err_no_cat')); return;
     }
     if (!chain) {
-      Alert.alert('入力エラー', 'チェーンを選んでや！'); return;
+      Alert.alert(t('mi_err_title'), t('chain_required_msg')); return;
     }
     const ts = parseDateTime(dateStr);
     if (!ts) {
-      Alert.alert('入力エラー', '日時は YYYY/MM/DD HH:MM 形式で入力してや\n例：2026/06/11 14:30'); return;
+      Alert.alert(t('mi_err_title'), t('mi_err_datetime')); return;
     }
 
     isSavingRef.current = true;
@@ -123,11 +139,11 @@ export default function ManualInput({ navigation, route }) {
         memo,
         extra:      {},
       });
-      Alert.alert('保存完了', '記録を保存したで！', [
+      Alert.alert(t('set_save_done_title'), t('mi_saved_msg'), [
         { text: 'OK', onPress: () => navigation.goBack() },
       ]);
     } catch (e) {
-      Alert.alert('エラー', `保存に失敗したで：${e.message}`);
+      Alert.alert(t('set_error_title'), t('set_save_fail_msg', e.message));
     } finally {
       isSavingRef.current = false;
     }
@@ -140,18 +156,18 @@ export default function ManualInput({ navigation, route }) {
 
         {/* ── カテゴリ選択（大分類） ── */}
         <View style={s.section}>
-          <Text style={s.sectionTitle}>カテゴリ</Text>
+          <Text style={s.sectionTitle}>{t('mi_sec_category')}</Text>
 
           {/* 大分類ボタン */}
           <View style={s.groupRow}>
-            {Object.keys(MANUAL_GROUPS).map((grp) => (
+            {MANUAL_GROUPS.map((g) => (
               <TouchableOpacity
-                key={grp}
-                style={[s.groupBtn, selectedGroup === grp && s.groupBtnActive]}
-                onPress={() => { setSelectedGroup(grp); setSelectedCategory(null); }}
+                key={g.key}
+                style={[s.groupBtn, selectedGroup === g.key && s.groupBtnActive]}
+                onPress={() => { setSelectedGroup(g.key); setSelectedCategory(null); }}
               >
-                <Text style={[s.groupBtnText, selectedGroup === grp && s.groupBtnTextActive]}>
-                  {grp}
+                <Text style={[s.groupBtnText, selectedGroup === g.key && s.groupBtnTextActive]}>
+                  {t(g.labelKey)}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -160,14 +176,14 @@ export default function ManualInput({ navigation, route }) {
           {/* 細分類ボタン */}
           {selectedGroup && (
             <View style={s.catRow}>
-              {MANUAL_GROUPS[selectedGroup].map((cat) => (
+              {(MANUAL_GROUPS.find((g) => g.key === selectedGroup)?.cats ?? []).map((cat) => (
                 <TouchableOpacity
                   key={cat}
                   style={[s.catBtn, selectedCategory === cat && s.catBtnActive]}
                   onPress={() => handleSelectCategory(cat)}
                 >
                   <Text style={[s.catBtnText, selectedCategory === cat && s.catBtnTextActive]}>
-                    {CATEGORY_LABELS[cat] ?? cat}
+                    {t('cat_' + cat)}
                   </Text>
                 </TouchableOpacity>
               ))}
@@ -178,10 +194,10 @@ export default function ManualInput({ navigation, route }) {
           {selectedCategory && (
             <View style={s.selectedBadge}>
               <Text style={s.selectedBadgeText}>
-                ✅ {CATEGORY_LABELS[selectedCategory]}
+                ✅ {t('cat_' + selectedCategory)}
                 {'  '}
                 <Text style={{ color: '#888', fontSize: 11 }}>
-                  {TYPE_LABELS[selectedType]}
+                  {t(TYPE_LABEL_KEYS[selectedType] ?? 'group_expense')}
                 </Text>
               </Text>
             </View>
@@ -190,7 +206,7 @@ export default function ManualInput({ navigation, route }) {
 
         {/* ── チェーン ── */}
         <View style={s.section}>
-          <Text style={s.sectionTitle}>チェーン</Text>
+          <Text style={s.sectionTitle}>{t('mi_sec_chain')}</Text>
           <View style={s.chainRow}>
             {['SOL', 'BNB', 'POL'].map((c) => (
               <TouchableOpacity
@@ -209,7 +225,7 @@ export default function ManualInput({ navigation, route }) {
 
         {/* ── 金額 ── */}
         <View style={s.section}>
-          <Text style={s.sectionTitle}>金額</Text>
+          <Text style={s.sectionTitle}>{t('mi_sec_amount')}</Text>
           <View style={s.fieldRow}>
             <Text style={s.fieldLabel}>GST</Text>
             <TextInput
@@ -236,9 +252,9 @@ export default function ManualInput({ navigation, route }) {
 
         {/* ── 日時 ── */}
         <View style={s.section}>
-          <Text style={s.sectionTitle}>日時</Text>
+          <Text style={s.sectionTitle}>{t('mi_sec_datetime')}</Text>
           <View style={s.fieldRow}>
-            <Text style={s.fieldLabel}>日時</Text>
+            <Text style={s.fieldLabel}>{t('mi_field_datetime')}</Text>
             <TextInput
               style={s.fieldInput}
               value={dateStr}
@@ -247,17 +263,17 @@ export default function ManualInput({ navigation, route }) {
               placeholderTextColor="#555"
             />
           </View>
-          <Text style={s.hint}>形式：YYYY/MM/DD HH:MM</Text>
+          <Text style={s.hint}>{t('mi_datetime_hint')}</Text>
         </View>
 
         {/* ── メモ ── */}
         <View style={s.section}>
-          <Text style={s.sectionTitle}>メモ（任意）</Text>
+          <Text style={s.sectionTitle}>{t('mi_sec_memo')}</Text>
           <TextInput
             style={[s.fieldInput, { minHeight: 60, textAlignVertical: 'top', padding: 10 }]}
             value={memo}
             onChangeText={setMemo}
-            placeholder="メモを入力（任意）"
+            placeholder={t('mi_memo_ph')}
             placeholderTextColor="#555"
             multiline
           />
@@ -268,7 +284,7 @@ export default function ManualInput({ navigation, route }) {
       {/* 保存ボタン（固定） */}
       <View style={s.bottomBar}>
         <TouchableOpacity style={s.saveBtn} onPress={handleSave}>
-          <Text style={s.saveBtnText}>💾 保存する</Text>
+          <Text style={s.saveBtnText}>{t('set_save_btn')}</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
