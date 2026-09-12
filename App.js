@@ -2,10 +2,15 @@
  * App.js  v3.4.0
  * STEPN収支管理ツール - ナビゲーション設定
  *
+ * v3.5.0 変更点：
+ *   - テーマ（ダーク/ライト）対応。ThemeProvider でアプリ全体を包み、
+ *     ヘッダー・ステータスバーの色を colors から取るようにした。
+ *
  * v3.4.0 変更点：
  *   - ヘッダータイトルと戻るボタンを多言語化（nav_* キー）。
  *   - App() 自身は LanguageProvider の外側にいるため useI18n() が効かない。
  *     そのため Navigator を RootNavigator として内側に切り出している。
+ *     テーマも同じ理由で RootNavigator の中で useTheme() を呼んでいる。
  *
  * v3.1.0 変更点：
  *   - 多言語対応（LanguageProvider）を追加。アプリ全体を包み、
@@ -27,8 +32,8 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import { StorageService } from './src/services/StorageService';
-import { COLORS } from './src/constants';
 import { LanguageProvider, useI18n } from './src/i18n/i18n';   // ★ 多言語対応
+import { ThemeProvider, useTheme } from './src/theme/theme';    // ★ テーマ対応
 
 // ── 画面インポート ──
 import HomeScreen          from './src/screens/HomeScreen';
@@ -50,26 +55,30 @@ const Stack = createNativeStackNavigator();
 // ─────────────────────────────────────────
 
 function RootNavigator() {
-  const { t } = useI18n();   // ★ 多言語対応
+  const { t } = useI18n();            // ★ 多言語対応
+  const { colors, theme } = useTheme();  // ★ テーマ対応
 
   const screenOptions = {
     headerStyle: {
-      backgroundColor: '#111111',
+      backgroundColor: colors.bgInput,
     },
-    headerTintColor: '#ffffff',
+    headerTintColor: colors.textPrimary,
     headerTitleStyle: {
       fontWeight: 'bold',
       fontSize: 16,
     },
     headerBackTitle: t('nav_back'),
     contentStyle: {
-      backgroundColor: COLORS.bg,
+      backgroundColor: colors.bg,
     },
   };
 
   return (
     <NavigationContainer>
-      <StatusBar barStyle="light-content" backgroundColor={COLORS.bg} />
+      <StatusBar
+        barStyle={theme === 'dark' ? 'light-content' : 'dark-content'}
+        backgroundColor={colors.bg}
+      />
 
       <Stack.Navigator
         initialRouteName="Home"
@@ -143,9 +152,11 @@ export default function App() {
   }, []);
 
   return (
-    // ★ アプリ全体を LanguageProvider で包む（全画面で言語を共有）
-    <LanguageProvider>
-      <RootNavigator />
-    </LanguageProvider>
+    // ★ アプリ全体を Provider で包む（全画面でテーマと言語を共有）
+    <ThemeProvider>
+      <LanguageProvider>
+        <RootNavigator />
+      </LanguageProvider>
+    </ThemeProvider>
   );
 }

@@ -543,6 +543,15 @@ const DICT = {
     en: 'Your choice is kept the next time you open the app',
   },
 
+  // ── テーマセクション（Coming Soon から実装済みに昇格） ──
+  set_theme_title: { ja: '🎨 テーマ', en: '🎨 Theme' },
+  set_theme_hint: {
+    ja: '選んだテーマは次回起動時も保持されるで',
+    en: 'Your choice is kept the next time you open the app',
+  },
+  set_theme_dark:  { ja: 'ダーク', en: 'Dark' },
+  set_theme_light: { ja: 'ライト', en: 'Light' },
+
   // ── 今後のアップデート ──
   set_coming_title:    { ja: '🚀 今後のアップデート',    en: '🚀 Coming Updates' },
   set_coming_theme:    { ja: 'テーマ（ダーク / ライト）',  en: 'Theme (Dark / Light)' },
@@ -879,7 +888,11 @@ Select button → choose several and delete them at once`,
 出力後はAndroidの共有シートが開くから、
 Gmail・Googleドライブ・LINE等で自由に共有してや。
 
-ファイル名の例：stepn_SOL_2026-06.csv`,
+ファイル名の例：stepn_SOL_2026-06.csv
+
+※ CSVの中身（列名・カテゴリ名）は確定申告で使う前提なので、
+　 アプリを英語表示にしても常に日本語で出力されるで。
+　 言語で列名が変わると、過去に出したCSVと結合したときに集計が壊れるからや。`,
     en: `Export a CSV file for tax filing.
 
 Options:
@@ -889,7 +902,12 @@ Options:
 The Android share sheet opens after the export, so you can send it
 through Gmail, Google Drive, LINE or anything else.
 
-Example file name: stepn_SOL_2026-06.csv`,
+Example file name: stepn_SOL_2026-06.csv
+
+※ The contents of the CSV (column names and category names) are always
+   written in Japanese, even when the app is set to English, because the
+   file is meant for Japanese tax filing. Keeping the columns fixed means
+   a new export can still be combined with ones you exported earlier.`,
   },
 
   guide_balance_t: { ja: '💰 Spending残高照合', en: '💰 Balance Check' },
@@ -940,13 +958,16 @@ Income and expenses are totalled separately for each chain.`,
 
   guide_notes_t: { ja: '⚠️ 注意事項', en: '⚠️ Notes' },
   guide_notes_b: {
-    ja: `・画像データは取込後に破棄（端末には保存しない）
+    ja: `・元のスクショは取込後に破棄。ただし一覧表示用に幅300pxのサムネイルを
+　端末内に保存する（1枚約50KB）。レコードを消せばサムネイルも消える
 ・OCR解析は100%正確ではないので、確認画面で必ずチェック
 ・Spending→Wallet出金手数料は変動するので都度確認
 ・確定申告の最終判断は税理士に相談してな
 ・データはAsyncStorage（端末ローカル）に保存
 ・アプリを削除するとデータも消えるので注意`,
-    en: `・Image data is discarded after import (not stored on the device)
+    en: `・The original screenshot is discarded after import, but a 300px-wide
+　thumbnail is kept on the device for the list view (about 50KB each).
+　Deleting a record also deletes its thumbnail
 ・OCR is not 100% accurate — always check the confirmation screen
 ・Spending→Wallet withdrawal fees vary, so check them each time
 ・Consult a tax accountant for final decisions on your tax return

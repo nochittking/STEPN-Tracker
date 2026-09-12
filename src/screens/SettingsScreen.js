@@ -15,7 +15,7 @@
  *   - バージョン表記を constants の APP_VERSION 参照に変更（ベタ書きのズレ防止）。
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   TextInput, Alert, SafeAreaView, ActivityIndicator,
@@ -24,15 +24,22 @@ import { useFocusEffect } from '@react-navigation/native';
 import { StorageService } from '../services/StorageService';
 import { APP_VERSION } from '../constants';
 import { useI18n } from '../i18n/i18n';   // ★ 多言語対応
+import { useTheme, CHAIN_COLORS } from '../theme/theme';   // ★ テーマ対応
 
-const CHAIN_COLORS = { SOL: '#9FFB50', BNB: '#F3BA2F', POL: '#9063CD' };
 const LANGS = [
   { code: 'ja', label: '日本語' },
   { code: 'en', label: 'English' },
 ];
 
+const THEMES = [
+  { code: 'dark',  icon: '🌙', labelKey: 'set_theme_dark'  },
+  { code: 'light', icon: '☀️', labelKey: 'set_theme_light' },
+];
+
 export default function SettingsScreen({ navigation }) {
-  const { t, lang, setLang } = useI18n();   // ★ 多言語対応
+  const { t, lang, setLang }      = useI18n();   // ★ 多言語対応
+  const { colors, theme, setTheme } = useTheme();  // ★ テーマ対応
+  const s = useMemo(() => makeStyles(colors), [colors]);
 
   const [chain,   setChain]   = useState('SOL');
   const [loading, setLoading] = useState(false);
@@ -117,8 +124,8 @@ export default function SettingsScreen({ navigation }) {
     return Math.abs(d) < 0.01 ? ' ✅' : ' ⚠️';
   };
   const diffColor = (d) => {
-    if (d == null) return '#888';
-    return Math.abs(d) < 0.01 ? '#00ff88' : '#ff4444';
+    if (d == null) return colors.textMuted;
+    return Math.abs(d) < 0.01 ? colors.income : colors.expense;
   };
 
   return (
@@ -157,7 +164,7 @@ export default function SettingsScreen({ navigation }) {
           </Text>
 
           {loading ? (
-            <ActivityIndicator size="small" color="#555" style={{ marginVertical: 16 }} />
+            <ActivityIndicator size="small" color={colors.textHint} style={{ marginVertical: 16 }} />
           ) : (
             <>
               <View style={s.fieldRow}>
@@ -165,10 +172,10 @@ export default function SettingsScreen({ navigation }) {
                 <TextInput
                   style={s.fieldInput}
                   value={initGst}
-                  onChangeText={(t) => { setInitGst(t); setSaved(false); }}
+                  onChangeText={(v) => { setInitGst(v); setSaved(false); }}
                   keyboardType="numeric"
                   placeholder="0"
-                  placeholderTextColor="#555"
+                  placeholderTextColor={colors.textHint}
                 />
               </View>
               <View style={s.fieldRow}>
@@ -176,10 +183,10 @@ export default function SettingsScreen({ navigation }) {
                 <TextInput
                   style={s.fieldInput}
                   value={initGmt}
-                  onChangeText={(t) => { setInitGmt(t); setSaved(false); }}
+                  onChangeText={(v) => { setInitGmt(v); setSaved(false); }}
                   keyboardType="numeric"
                   placeholder="0"
-                  placeholderTextColor="#555"
+                  placeholderTextColor={colors.textHint}
                 />
               </View>
               <TouchableOpacity style={s.saveBtn} onPress={handleSaveBalance}>
@@ -218,10 +225,10 @@ export default function SettingsScreen({ navigation }) {
             <TextInput
               style={s.fieldInput}
               value={actualGst}
-              onChangeText={(t) => { setActualGst(t); setVerified(false); }}
+              onChangeText={(v) => { setActualGst(v); setVerified(false); }}
               keyboardType="numeric"
               placeholder={t('set_actual_gst_ph')}
-              placeholderTextColor="#555"
+              placeholderTextColor={colors.textHint}
             />
           </View>
           <View style={s.fieldRow}>
@@ -229,10 +236,10 @@ export default function SettingsScreen({ navigation }) {
             <TextInput
               style={s.fieldInput}
               value={actualGmt}
-              onChangeText={(t) => { setActualGmt(t); setVerified(false); }}
+              onChangeText={(v) => { setActualGmt(v); setVerified(false); }}
               keyboardType="numeric"
               placeholder={t('set_actual_gmt_ph')}
-              placeholderTextColor="#555"
+              placeholderTextColor={colors.textHint}
             />
           </View>
 
@@ -298,14 +305,32 @@ export default function SettingsScreen({ navigation }) {
           </View>
         </View>
 
+        {/* テーマ切替
+            ※ 言語セクションと同じ UI パターン。ThemeProvider の Context を共有する */}
+        <View style={s.section}>
+          <Text style={s.sectionTitle}>{t('set_theme_title')}</Text>
+          <Text style={s.hint}>{t('set_theme_hint')}</Text>
+          <View style={s.langRow}>
+            {THEMES.map((th) => {
+              const active = theme === th.code;
+              return (
+                <TouchableOpacity
+                  key={th.code}
+                  style={[s.langBtn, active && s.langBtnActive]}
+                  onPress={() => setTheme(th.code)}
+                >
+                  <Text style={[s.langBtnText, active && s.langBtnTextActive]}>
+                    {active ? '✅ ' : ''}{th.icon} {t(th.labelKey)}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+
         {/* Coming Soon */}
         <View style={s.section}>
           <Text style={s.sectionTitle}>{t('set_coming_title')}</Text>
-          <View style={s.comingItem}>
-            <Text style={s.comingIcon}>🎨</Text>
-            <Text style={s.comingText}>{t('set_coming_theme')}</Text>
-            <Text style={s.comingBadge}>{t('set_coming_badge')}</Text>
-          </View>
           <View style={s.comingItem}>
             <Text style={s.comingIcon}>🔤</Text>
             <Text style={s.comingText}>{t('set_coming_fontsize')}</Text>
@@ -327,15 +352,15 @@ export default function SettingsScreen({ navigation }) {
   );
 }
 
-const s = StyleSheet.create({
-  container:     { flex: 1, backgroundColor: '#0a0a0a' },
+const makeStyles = (c) => StyleSheet.create({
+  container:     { flex: 1, backgroundColor: c.bg },
   scroll:        { flex: 1, padding: 16 },
-  pageTitle:     { fontSize: 20, fontWeight: 'bold', color: '#fff', marginBottom: 16 },
+  pageTitle:     { fontSize: 20, fontWeight: 'bold', color: c.textPrimary, marginBottom: 16 },
 
-  section:       { backgroundColor: '#1a1a1a', borderRadius: 12,
+  section:       { backgroundColor: c.bgCard, borderRadius: 12,
                    padding: 14, marginBottom: 12 },
-  sectionTitle:  { fontSize: 14, fontWeight: 'bold', color: '#fff', marginBottom: 8 },
-  hint:          { fontSize: 11, color: '#555', marginBottom: 10 },
+  sectionTitle:  { fontSize: 14, fontWeight: 'bold', color: c.textPrimary, marginBottom: 8 },
+  hint:          { fontSize: 11, color: c.textHint, marginBottom: 10 },
 
   // チェーン
   chainRow:      { flexDirection: 'row', gap: 10 },
@@ -345,60 +370,62 @@ const s = StyleSheet.create({
 
   // フィールド
   fieldRow:      { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
-  fieldLabel:    { fontSize: 13, color: '#888', width: 50 },
-  fieldInput:    { flex: 1, fontSize: 14, color: '#fff', borderWidth: 1,
-                   borderColor: '#333', borderRadius: 8, paddingHorizontal: 12,
-                   paddingVertical: 8, backgroundColor: '#111' },
+  fieldLabel:    { fontSize: 13, color: c.textMuted, width: 50 },
+  fieldInput:    { flex: 1, fontSize: 14, color: c.textPrimary, borderWidth: 1,
+                   borderColor: c.borderLight, borderRadius: 8, paddingHorizontal: 12,
+                   paddingVertical: 8, backgroundColor: c.bgInput },
 
   // 保存ボタン
-  saveBtn:       { backgroundColor: '#00ff88', borderRadius: 10,
+  saveBtn:       { backgroundColor: c.btnPrimary, borderRadius: 10,
                    paddingVertical: 12, alignItems: 'center', marginTop: 8 },
-  saveBtnText:   { color: '#000', fontWeight: 'bold', fontSize: 14 },
+  saveBtnText:   { color: c.onPrimary, fontWeight: 'bold', fontSize: 14 },
 
   // 照合ボタン
-  verifyBtn:     { backgroundColor: '#4488ff', borderRadius: 10,
+  verifyBtn:     { backgroundColor: c.info, borderRadius: 10,
                    paddingVertical: 12, alignItems: 'center', marginTop: 8 },
-  verifyBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 14 },
+  // 照合ボタンは両テーマとも濃い青地なので、文字は白で固定する
+  verifyBtnText: { color: '#ffffff', fontWeight: 'bold', fontSize: 14 },
 
   // 計算残高
-  calcBox:       { backgroundColor: '#111', borderRadius: 8, padding: 12, marginTop: 4 },
-  calcLabel:     { fontSize: 11, color: '#555', marginBottom: 6 },
+  calcBox:       { backgroundColor: c.bgInput, borderRadius: 8, padding: 12, marginTop: 4,
+                   borderWidth: 1, borderColor: c.border },
+  calcLabel:     { fontSize: 11, color: c.textHint, marginBottom: 6 },
   calcRow:       { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3 },
-  calcToken:     { fontSize: 12, color: '#888' },
-  calcValue:     { fontSize: 14, color: '#fff', fontWeight: 'bold' },
+  calcToken:     { fontSize: 12, color: c.textMuted },
+  calcValue:     { fontSize: 14, color: c.textPrimary, fontWeight: 'bold' },
 
   // 照合結果
-  resultBox:     { backgroundColor: '#0d1a2a', borderRadius: 8,
+  resultBox:     { backgroundColor: c.infoBg, borderRadius: 8,
                    padding: 12, marginTop: 12 },
-  resultTitle:   { fontSize: 13, fontWeight: 'bold', color: '#4488ff', marginBottom: 8 },
+  resultTitle:   { fontSize: 13, fontWeight: 'bold', color: c.info, marginBottom: 8 },
   resultRow:     { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3 },
-  resultLabel:   { fontSize: 12, color: '#888' },
+  resultLabel:   { fontSize: 12, color: c.textMuted },
   resultValue:   { fontSize: 14, fontWeight: 'bold' },
-  warnText:      { fontSize: 11, color: '#ff8844', marginTop: 8, lineHeight: 16 },
+  warnText:      { fontSize: 11, color: c.pending, marginTop: 8, lineHeight: 16 },
 
   // メニュー項目
-  menuItem:      { backgroundColor: '#1a1a1a', borderRadius: 12, padding: 16,
+  menuItem:      { backgroundColor: c.bgCard, borderRadius: 12, padding: 16,
                    marginBottom: 12, flexDirection: 'row', alignItems: 'center' },
-  menuItemText:  { fontSize: 14, color: '#fff', flex: 1 },
-  menuArrow:     { fontSize: 18, color: '#555' },
+  menuItemText:  { fontSize: 14, color: c.textPrimary, flex: 1 },
+  menuArrow:     { fontSize: 18, color: c.textHint },
 
-  // 言語切替
+  // 言語 / テーマ 切替（共通スタイル）
   langRow:         { flexDirection: 'row', gap: 10 },
   langBtn:         { flex: 1, paddingVertical: 10, borderRadius: 8,
-                     borderWidth: 1.5, borderColor: '#333',
+                     borderWidth: 1.5, borderColor: c.borderLight,
                      backgroundColor: 'transparent', alignItems: 'center' },
-  langBtnActive:   { borderColor: '#00ff88', backgroundColor: '#00ff8822' },
-  langBtnText:     { fontWeight: 'bold', fontSize: 13, color: '#666' },
-  langBtnTextActive: { color: '#00ff88' },
+  langBtnActive:   { borderColor: c.income, backgroundColor: c.accentBg },
+  langBtnText:     { fontWeight: 'bold', fontSize: 13, color: c.textMuted },
+  langBtnTextActive: { color: c.income },
 
   // Coming Soon
   comingItem:    { flexDirection: 'row', alignItems: 'center', paddingVertical: 8,
-                   borderBottomWidth: 1, borderBottomColor: '#222' },
+                   borderBottomWidth: 1, borderBottomColor: c.bgSubtle },
   comingIcon:    { fontSize: 16, marginRight: 10 },
-  comingText:    { flex: 1, fontSize: 13, color: '#666' },
-  comingBadge:   { fontSize: 10, color: '#444', backgroundColor: '#222',
+  comingText:    { flex: 1, fontSize: 13, color: c.textMuted },
+  comingBadge:   { fontSize: 10, color: c.textFaint, backgroundColor: c.bgSubtle,
                    paddingHorizontal: 8, paddingVertical: 2, borderRadius: 4 },
 
   // アプリ情報
-  infoText:      { fontSize: 12, color: '#555', marginBottom: 3 },
+  infoText:      { fontSize: 12, color: c.textHint, marginBottom: 3 },
 });
