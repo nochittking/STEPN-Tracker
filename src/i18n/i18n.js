@@ -759,6 +759,217 @@ const DICT = {
   fld_needs_pixel_scan: { ja: 'ピクセル解析',  en: 'Pixel Scan' },
   fld_pixel_scan_type:  { ja: '解析タイプ',    en: 'Scan Type' },
   fld_result:           { ja: '結果',          en: 'Result' },
+
+  // ─────────────────────────────────────────
+  // SettingsScreen_guide（使い方ガイド）
+  // ─────────────────────────────────────────
+
+  guide_title: { ja: '📖 STEPN Tracker 使い方ガイド', en: '📖 STEPN Tracker User Guide' },
+
+  guide_home_t: { ja: '🏠 ホーム画面', en: '🏠 Home' },
+  guide_home_b: {
+    ja: `チェーン（SOL/BNB/POL）を切り替えて、今月の収支サマリーを確認できるで。
+
+チェーン選択は次回起動時も保持される。
+
+ボタンの説明：
+・📸 スクショ取込 → STEPNのスクショから自動でデータ読み取り
+・✏️ 手動入力 → 手動でレコードを追加
+・📋 記録一覧 → 保存済みレコードの確認・編集・削除
+・⚙️ 設定 → 初期残高・残高照合・このガイド
+・📊 CSV出力 → 確定申告用のCSVファイルを共有`,
+    en: `Switch between chains (SOL/BNB/POL) to see this month's summary.
+
+Your chain selection is kept the next time you open the app.
+
+Buttons:
+・📸 Import → Read data automatically from STEPN screenshots
+・✏️ Manual Input → Add a record by hand
+・📋 Records → View, edit and delete saved records
+・⚙️ Settings → Initial balance, balance check, this guide
+・📊 Export CSV → Share a CSV file for tax filing`,
+  },
+
+  guide_import_t: { ja: '📸 スクショ取込', en: '📸 Import' },
+  guide_import_b: {
+    ja: `カメラロールからSTEPNのスクショを最大20枚まで選択。
+
+ML Kit OCRで自動解析して、カテゴリ・金額を自動判定するで。
+
+対応カテゴリ（自動判定）：
+・ムーブ結果（GST/GMT獲得）
+・Durability修復 / HP修復
+・レベルアップ
+・ジェムアップグレード
+・ミントコスト / ミント結果
+・マーケット購入 / 出品
+・MBオープン / MB開封結果
+・Spending出金 / 入金
+・エンハンスコスト
+・成功率UP / ポイント振直し
+など
+
+チェーンはスクショのアイコン色から自動判定を試みるけど、
+確認画面で手動変更もできるで。`,
+    en: `Pick up to 20 STEPN screenshots from your camera roll.
+
+ML Kit OCR analyses them and detects the category and amounts automatically.
+
+Auto-detected categories:
+・Move result (GST/GMT earned)
+・Durability repair / HP repair
+・Level up
+・Gem upgrade
+・Mint cost / Mint result
+・Marketplace buy / listing
+・MB open / MB contents
+・Spending withdraw / deposit
+・Enhancement cost
+・Success rate up / Point redistribution
+and more
+
+The chain is guessed from the icon colour in the screenshot,
+but you can change it by hand on the confirmation screen.`,
+  },
+
+  guide_manual_t: { ja: '✏️ 手動入力', en: '✏️ Manual Input' },
+  guide_manual_b: {
+    ja: `スクショが撮れへんかった取引を手動で記録できる。
+
+大分類 → 細分類の2段階でカテゴリを選んで、
+チェーン・金額・日時・メモを入力して保存するだけ。
+
+種別（収入/支出/情報）はカテゴリに応じて自動設定されるで。`,
+    en: `Record transactions you could not capture in a screenshot.
+
+Pick a category in two steps (group → category),
+then enter the chain, amounts, date and memo, and save.
+
+The type (income/expense/info) is set automatically from the category.`,
+  },
+
+  guide_list_t: { ja: '📋 記録一覧', en: '📋 Records' },
+  guide_list_b: {
+    ja: `保存済みのレコードを一覧表示。
+
+タブ切替：ALL / 収入 / 支出 / 情報 / 売却中 / 仮保存
+チェーンフィルタ：ALL / SOL / BNB / POL
+ソート：新しい順 / 古い順
+
+レコードをタップ → 詳細画面で編集・メモ追加
+選択ボタン → 複数選択してまとめて削除`,
+    en: `Lists every saved record.
+
+Tabs: ALL / Income / Expense / Info / Listing / Pending
+Chain filter: ALL / SOL / BNB / POL
+Sort: Newest first / Oldest first
+
+Tap a record → edit it and add a memo on the detail screen
+Select button → choose several and delete them at once`,
+  },
+
+  guide_csv_t: { ja: '📊 CSV出力', en: '📊 Export CSV' },
+  guide_csv_b: {
+    ja: `確定申告用にCSVファイルを出力できる。
+
+出力条件：
+・チェーン：全チェーン / SOL / BNB / POL
+・期間：今月 / 今年 / 全期間 / 月を指定
+
+出力後はAndroidの共有シートが開くから、
+Gmail・Googleドライブ・LINE等で自由に共有してや。
+
+ファイル名の例：stepn_SOL_2026-06.csv`,
+    en: `Export a CSV file for tax filing.
+
+Options:
+・Chain: All chains / SOL / BNB / POL
+・Period: This month / This year / All time / Pick a month
+
+The Android share sheet opens after the export, so you can send it
+through Gmail, Google Drive, LINE or anything else.
+
+Example file name: stepn_SOL_2026-06.csv`,
+  },
+
+  guide_balance_t: { ja: '💰 Spending残高照合', en: '💰 Balance Check' },
+  guide_balance_b: {
+    ja: `設定画面から残高照合ができるで。
+
+仕組み：
+  初期残高 ＋ 収入合計 − 支出合計 ＝ 計算残高
+
+この計算残高とSTEPNアプリの実際の残高を比較して、
+差異があれば未記録の取引がある可能性を通知する。
+
+差異が0なら ✅、差異があれば ⚠️ で表示。`,
+    en: `You can check your balance from the Settings screen.
+
+How it works:
+  Initial balance ＋ total income − total expense ＝ calculated balance
+
+It compares that with the actual balance in the STEPN app and warns you
+when a difference suggests some transactions are not recorded yet.
+
+✅ when the difference is zero, ⚠️ when there is one.`,
+  },
+
+  guide_chain_t: { ja: '🔗 チェーンについて', en: '🔗 About Chains' },
+  guide_chain_b: {
+    ja: `STEPNは3つのチェーンで動いてる：
+
+・SOL（Solana） → STEPN Greenカラー
+・BNB（BNB Smart Chain） → BNB黄色
+・POL（Polygon） → STEPN GO紫
+
+GST（ユーティリティトークン）はチェーン別に独立。
+GMT（ガバナンストークン）は全チェーン共通。
+
+収支はチェーン別に分けて集計されるで。`,
+    en: `STEPN runs on three chains:
+
+・SOL (Solana) → STEPN Green
+・BNB (BNB Smart Chain) → BNB Yellow
+・POL (Polygon) → STEPN GO Purple
+
+GST (utility token) is separate per chain.
+GMT (governance token) is shared across all chains.
+
+Income and expenses are totalled separately for each chain.`,
+  },
+
+  guide_notes_t: { ja: '⚠️ 注意事項', en: '⚠️ Notes' },
+  guide_notes_b: {
+    ja: `・画像データは取込後に破棄（端末には保存しない）
+・OCR解析は100%正確ではないので、確認画面で必ずチェック
+・Spending→Wallet出金手数料は変動するので都度確認
+・確定申告の最終判断は税理士に相談してな
+・データはAsyncStorage（端末ローカル）に保存
+・アプリを削除するとデータも消えるので注意`,
+    en: `・Image data is discarded after import (not stored on the device)
+・OCR is not 100% accurate — always check the confirmation screen
+・Spending→Wallet withdrawal fees vary, so check them each time
+・Consult a tax accountant for final decisions on your tax return
+・Data is stored in AsyncStorage (locally on the device)
+・Deleting the app also deletes your data`,
+  },
+
+  guide_about_t: { ja: '📱 アプリ情報', en: '📱 App Info' },
+  // タイプB：バージョンが入る
+  guide_about_b: {
+    ja: (version) => `STEPN Tracker v${version}
+開発：のっち × Claude
+技術：React Native / Expo / ML Kit OCR
+対応：Android（Development Build）
+
+お問い合わせやフィードバックは開発者まで。`,
+    en: (version) => `STEPN Tracker v${version}
+Developer: のっち × Claude
+Tech: React Native / Expo / ML Kit OCR
+Platform: Android (Development Build)
+
+Please send questions and feedback to the developer.`,
+  },
 };
 
 // ─────────────────────────────────────────
