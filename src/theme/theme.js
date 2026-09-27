@@ -86,6 +86,7 @@ export const DARK = {
   textMuted:     '#888888',
   textHint:      '#555555',
   textFaint:     '#444444',
+  textFaintest:  '#333333',   // フッター等、最も控えめな装飾文字
 
   // 意味を持つ色
   income:        '#00ff88',
@@ -106,6 +107,11 @@ export const DARK = {
   // 選択状態のアクセント背景（旧 '#00ff8822' 相当）
   accentBg:      '#00ff8822',
   accentBgSolid: '#003322',
+
+  // アクセント地のボタン背景（HomeScreen の取込／CSV／期間タブ）
+  accentSurface:   '#1a2a1a',   // 取込ボタンの地
+  accentSurfaceOn: '#1a3a2a',   // 選択中の期間タブの地
+  infoSurface:     '#1a1a2a',   // CSV出力ボタンの地
 
   // チェーン名の縁取り
   //   ダークは背景が暗くブランド色がそのまま読めるため、縁取りは付けない
@@ -161,6 +167,7 @@ export const LIGHT = {
   textMuted:     '#474b52',   //  6.01:1
   textHint:      '#585c63',   //  4.61:1
   textFaint:     '#767b84',   // 区切り線・バッジ等の装飾用（本文には使わない）
+  textFaintest:  '#8b9098',   // フッター等、最も控えめな装飾文字
 
   // 意味を持つ色（すべてカード上で 4.5:1 以上）
   income:        '#006937',
@@ -181,6 +188,11 @@ export const LIGHT = {
   // 選択状態のアクセント背景
   accentBg:      '#00a45726',
   accentBgSolid: '#b4d8c4',
+
+  // アクセント地のボタン背景（HomeScreen の取込／CSV／期間タブ）
+  accentSurface:   '#c7e3d3',   // 取込ボタンの地
+  accentSurfaceOn: '#b6dbc5',   // 選択中の期間タブの地
+  infoSurface:     '#cfdef3',   // CSV出力ボタンの地
 
   // チェーン名の縁取り
   //   明るい背景の上で鮮やかな文字を浮かせるための縁。

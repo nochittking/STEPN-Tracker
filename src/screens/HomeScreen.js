@@ -9,7 +9,7 @@
  *   - 期間タブ .map の引数 t → tab にリネーム（翻訳関数 t との名前衝突を回避）。
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   SafeAreaView, StatusBar, ActivityIndicator,
@@ -19,8 +19,8 @@ import { useFocusEffect } from '@react-navigation/native';
 import { StorageService } from '../services/StorageService';
 import CsvExportModal from './CsvExportModal';
 import { useI18n } from '../i18n/i18n';   // ★ 多言語対応
+import { useTheme } from '../theme/theme';   // ★ テーマ対応
 
-const CHAIN_COLORS = { SOL: '#9FFB50', BNB: '#F3BA2F', POL: '#9063CD' };
 const LAST_CHAIN_KEY = 'settings_last_chain';
 
 // 期間の from / to を返す（label は makePeriodLabel で別途生成する）
@@ -82,6 +82,8 @@ const fmtBal = (n) => (n != null && typeof n === 'number') ? n.toFixed(2) : '0.0
 
 export default function HomeScreen({ navigation }) {
   const { lang, setLang, t } = useI18n();   // ★ 多言語対応
+  const { colors, theme, chainColors } = useTheme();   // ★ テーマ対応
+  const s = useMemo(() => makeStyles(colors), [colors]);
 
   const [chain, setChain] = useState('BNB');
   const [summary, setSummary] = useState(null);
@@ -114,13 +116,14 @@ export default function HomeScreen({ navigation }) {
     setLoading(true);
     try {
       const { from, to } = getPeriodRange(targetPeriod, targetPickYear, targetPickMonth);
-      const [s, counts, bal, allCounts] = await Promise.all([
+      // ※ 変数名に s は使わないこと。スタイルの s を隠してしまう
+      const [summaryData, counts, bal, allCounts] = await Promise.all([
         StorageService.calcSummary({ chain: targetChain, from, to }),
         StorageService.getRecordCounts(targetChain),
         StorageService.calcSpendingBalance(targetChain),
         StorageService.getRecordCounts(),  // 全チェーン
       ]);
-      setSummary(s);
+      setSummary(summaryData);
       setTotalCount(counts.total);
       setAllCount(allCounts.total);
       setSpendGst(bal.gst?.calculated ?? 0);
@@ -145,8 +148,8 @@ export default function HomeScreen({ navigation }) {
   const gmtExpense = summary?.gmt?.expense  ?? 0;
   const gmtNet     = summary?.gmt?.net      ?? 0;
 
-  const netGstColor = gstNet >= 0 ? '#00ff88' : '#ff4444';
-  const netGmtColor = gmtNet >= 0 ? '#00ff88' : '#ff4444';
+  const netGstColor = gstNet >= 0 ? colors.income : colors.expense;
+  const netGmtColor = gmtNet >= 0 ? colors.income : colors.expense;
 
   // 現在の期間ラベル（翻訳済み）
   const periodLabel = makePeriodLabel(t, period, pickYear, pickMonth);
@@ -160,101 +163,101 @@ export default function HomeScreen({ navigation }) {
   ];
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#0a0a0a" />
-      <ScrollView contentContainerStyle={styles.scroll}>
+    <SafeAreaView style={s.container}>
+      <StatusBar barStyle={theme === 'dark' ? 'light-content' : 'dark-content'} backgroundColor={colors.bg} />
+      <ScrollView contentContainerStyle={s.scroll}>
 
         {/* ヘッダー + 言語トグル + 設定ボタン右上 */}
-        <View style={styles.headerRow}>
+        <View style={s.headerRow}>
           <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
-            <Text style={[styles.title, { color: CHAIN_COLORS[chain] }]}>
+            <Text style={[s.title, { color: chainColors[chain], textShadowColor: colors.chainTextShadow, textShadowOffset: { width: 0, height: 0 }, textShadowRadius: colors.chainTextShadowRadius }]}>
               ⚡ STEPN Tracker
             </Text>
-            <Text style={styles.sub}>  v3.4</Text>
+            <Text style={s.sub}>  v3.4</Text>
           </View>
           <View style={{ flexDirection: 'row', gap: 8 }}>
             {/* 🌐 言語トグル（押すと切り替わる先を表示） */}
             <TouchableOpacity
-              style={styles.langBtn}
+              style={s.langBtn}
               onPress={() => setLang(lang === 'ja' ? 'en' : 'ja')}
             >
-              <Text style={styles.langBtnText}>
+              <Text style={s.langBtnText}>
                 {lang === 'ja' ? '🌐 EN' : '🌐 JA'}
               </Text>
             </TouchableOpacity>
             {/* ⚙️ 設定 */}
             <TouchableOpacity
-              style={styles.settingsBtn}
+              style={s.settingsBtn}
               onPress={() => navigation.navigate('Settings')}
             >
-              <Text style={styles.settingsBtnText}>⚙️</Text>
+              <Text style={s.settingsBtnText}>⚙️</Text>
             </TouchableOpacity>
           </View>
         </View>
 
         {/* チェーン選択 */}
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>{t('chain_select')}</Text>
-          <View style={styles.chainRow}>
+        <View style={s.card}>
+          <Text style={s.cardTitle}>{t('chain_select')}</Text>
+          <View style={s.chainRow}>
             {['SOL', 'BNB', 'POL'].map((c) => (
               <TouchableOpacity
                 key={c}
                 style={[
-                  styles.chainBtn,
-                  { backgroundColor: chain === c ? CHAIN_COLORS[c] : '#111',
-                    borderColor:     chain === c ? CHAIN_COLORS[c] : '#333' },
+                  s.chainBtn,
+                  { backgroundColor: chain === c ? chainColors[c] : colors.bgInput,
+                    borderColor:     chain === c ? chainColors[c] : colors.borderLight },
                 ]}
                 onPress={() => handleChainChange(c)}
               >
-                <Text style={[styles.chainBtnText, { color: chain === c ? '#000' : '#555' }]}>
+                <Text style={[s.chainBtnText, { color: chain === c ? colors.onPrimary : colors.textHint }]}>
                   {c}
                 </Text>
               </TouchableOpacity>
             ))}
           </View>
-          <Text style={styles.chainNote}>{t('chain_note')}</Text>
+          <Text style={s.chainNote}>{t('chain_note')}</Text>
         </View>
 
         {/* Spending残高 */}
-        <View style={styles.card}>
+        <View style={s.card}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Text style={styles.cardTitle}>{t('spending_balance', chain)}</Text>
-            {loading && <ActivityIndicator size="small" color="#555" />}
+            <Text style={s.cardTitle}>{t('spending_balance', chain)}</Text>
+            {loading && <ActivityIndicator size="small" color={colors.textHint} />}
           </View>
-          <Text style={styles.balHint}>{t('balance_hint')}</Text>
-          <View style={styles.balRow}>
-            <Text style={styles.balToken}>GST</Text>
-            <Text style={[styles.balValue, { color: spendGst >= 0 ? '#fff' : '#ff4444' }]}>
+          <Text style={s.balHint}>{t('balance_hint')}</Text>
+          <View style={s.balRow}>
+            <Text style={s.balToken}>GST</Text>
+            <Text style={[s.balValue, { color: spendGst >= 0 ? colors.textPrimary : colors.expense }]}>
               {fmtBal(spendGst)}
             </Text>
           </View>
-          <View style={styles.balRow}>
-            <Text style={styles.balToken}>GMT</Text>
-            <Text style={[styles.balValue, { color: spendGmt >= 0 ? '#fff' : '#ff4444' }]}>
+          <View style={s.balRow}>
+            <Text style={s.balToken}>GMT</Text>
+            <Text style={[s.balValue, { color: spendGmt >= 0 ? colors.textPrimary : colors.expense }]}>
               {fmtBal(spendGmt)}
             </Text>
           </View>
         </View>
 
         {/* 収支テーブル */}
-        <View style={styles.card}>
+        <View style={s.card}>
           {/* 期間ラベル + ローディング */}
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-            <Text style={styles.cardTitle}>
+            <Text style={s.cardTitle}>
               {t('period_summary', periodLabel)}
             </Text>
-            {loading && <ActivityIndicator size="small" color="#555" />}
+            {loading && <ActivityIndicator size="small" color={colors.textHint} />}
           </View>
 
           {/* 期間選択タブ */}
-          <View style={styles.periodTabs}>
+          <View style={s.periodTabs}>
             {PERIOD_TABS.map((tab) => (
               <TouchableOpacity
                 key={tab.key}
-                style={[styles.periodTab, period === tab.key && styles.periodTabActive]}
+                style={[s.periodTab, period === tab.key && s.periodTabActive]}
                 onPress={() => setPeriod(tab.key)}
               >
-                <Text style={[styles.periodTabText, period === tab.key && styles.periodTabTextActive]}>
+                <Text style={[s.periodTabText, period === tab.key && s.periodTabTextActive]}>
                   {t(tab.tkey)}
                 </Text>
               </TouchableOpacity>
@@ -263,114 +266,114 @@ export default function HomeScreen({ navigation }) {
 
           {/* 月指定ピッカー */}
           {period === 'pick' && (
-            <View style={styles.monthPicker}>
+            <View style={s.monthPicker}>
               <TouchableOpacity
-                style={styles.arrowBtn}
+                style={s.arrowBtn}
                 onPress={() => {
                   if (pickMonth === 1) { setPickMonth(12); setPickYear((y) => y - 1); }
                   else setPickMonth((m) => m - 1);
                 }}
               >
-                <Text style={styles.arrowBtnText}>◀</Text>
+                <Text style={s.arrowBtnText}>◀</Text>
               </TouchableOpacity>
-              <Text style={styles.monthPickerLabel}>
+              <Text style={s.monthPickerLabel}>
                 {t('label_month_year', pickYear, pickMonth)}
               </Text>
               <TouchableOpacity
-                style={styles.arrowBtn}
+                style={s.arrowBtn}
                 onPress={() => {
                   if (pickMonth === 12) { setPickMonth(1); setPickYear((y) => y + 1); }
                   else setPickMonth((m) => m + 1);
                 }}
               >
-                <Text style={styles.arrowBtnText}>▶</Text>
+                <Text style={s.arrowBtnText}>▶</Text>
               </TouchableOpacity>
             </View>
           )}
 
 
 
-          <View style={styles.tableRow}>
-            <Text style={styles.tableLabel}> </Text>
-            <Text style={styles.tableToken}>GST</Text>
-            <Text style={styles.tableToken}>GMT</Text>
+          <View style={s.tableRow}>
+            <Text style={s.tableLabel}> </Text>
+            <Text style={s.tableToken}>GST</Text>
+            <Text style={s.tableToken}>GMT</Text>
           </View>
-          <View style={styles.divider} />
+          <View style={s.divider} />
 
-          <View style={styles.tableRow}>
-            <Text style={styles.tableLabel}>{t('income')}</Text>
-            <Text style={[styles.tableValue, { color: '#00ff88' }]}>
+          <View style={s.tableRow}>
+            <Text style={s.tableLabel}>{t('income')}</Text>
+            <Text style={[s.tableValue, { color: colors.income }]}>
               {fmt(gstIncome, 'income')}
             </Text>
-            <Text style={[styles.tableValue, { color: '#00ff88' }]}>
+            <Text style={[s.tableValue, { color: colors.income }]}>
               {fmt(gmtIncome, 'income')}
             </Text>
           </View>
 
-          <View style={styles.tableRow}>
-            <Text style={styles.tableLabel}>{t('expense')}</Text>
-            <Text style={[styles.tableValue, { color: '#ff4444' }]}>
+          <View style={s.tableRow}>
+            <Text style={s.tableLabel}>{t('expense')}</Text>
+            <Text style={[s.tableValue, { color: colors.expense }]}>
               {fmt(gstExpense, 'expense')}
             </Text>
-            <Text style={[styles.tableValue, { color: '#ff4444' }]}>
+            <Text style={[s.tableValue, { color: colors.expense }]}>
               {fmt(gmtExpense, 'expense')}
             </Text>
           </View>
 
-          <View style={styles.divider} />
+          <View style={s.divider} />
 
-          <View style={styles.tableRow}>
-            <Text style={[styles.tableLabel, { fontWeight: 'bold' }]}>{t('total')}</Text>
-            <Text style={[styles.tableValue, { color: netGstColor, fontWeight: 'bold' }]}>
+          <View style={s.tableRow}>
+            <Text style={[s.tableLabel, { fontWeight: 'bold' }]}>{t('total')}</Text>
+            <Text style={[s.tableValue, { color: netGstColor, fontWeight: 'bold' }]}>
               {fmt(gstNet, gstNet >= 0 ? 'income' : 'expense')}
             </Text>
-            <Text style={[styles.tableValue, { color: netGmtColor, fontWeight: 'bold' }]}>
+            <Text style={[s.tableValue, { color: netGmtColor, fontWeight: 'bold' }]}>
               {fmt(gmtNet, gmtNet >= 0 ? 'income' : 'expense')}
             </Text>
           </View>
         </View>
 
-        <Text style={styles.countText}>
+        <Text style={s.countText}>
           {t('records_count', chain, totalCount, allCount)}
         </Text>
 
         {/* 取込ボタン */}
         <TouchableOpacity
-          style={styles.importBtn}
+          style={s.importBtn}
           onPress={() => navigation.navigate('Import', { chain })}
         >
-          <Text style={styles.importBtnText}>{t('import_button')}</Text>
+          <Text style={s.importBtnText}>{t('import_button')}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.subBtn}
+          style={s.subBtn}
           onPress={() => navigation.navigate('ManualInput', { chain })}
         >
-          <Text style={styles.subBtnText}>{t('manual_button')}</Text>
+          <Text style={s.subBtnText}>{t('manual_button')}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.subBtn}
+          style={s.subBtn}
           onPress={() => navigation.navigate('RecordList', {})}
         >
-          <Text style={styles.subBtnText}>{t('record_list_button', allCount)}</Text>
+          <Text style={s.subBtnText}>{t('record_list_button', allCount)}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.subBtn}
+          style={s.subBtn}
           onPress={() => navigation.navigate('Guide')}
         >
-          <Text style={styles.subBtnText}>{t('guide_button')}</Text>
+          <Text style={s.subBtnText}>{t('guide_button')}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.csvBtn}
+          style={s.csvBtn}
           onPress={() => setShowCsvModal(true)}
         >
-          <Text style={styles.csvBtnText}>{t('csv_button')}</Text>
+          <Text style={s.csvBtnText}>{t('csv_button')}</Text>
         </TouchableOpacity>
 
-        <Text style={styles.footer}>STEPN Tracker v3.4 · {chain} Chain</Text>
+        <Text style={s.footer}>STEPN Tracker v3.4 · {chain} Chain</Text>
 
       </ScrollView>
 
@@ -382,72 +385,72 @@ export default function HomeScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
-  container:    { flex: 1, backgroundColor: '#0a0a0a' },
+const makeStyles = (c) => StyleSheet.create({
+  container:    { flex: 1, backgroundColor: c.bg },
   scroll:       { padding: 16, paddingBottom: 48 },
   headerRow:    { flexDirection: 'row', justifyContent: 'space-between',
                   alignItems: 'center', marginBottom: 20, paddingTop: 24 },
   title:        { fontSize: 24, fontWeight: 'bold', letterSpacing: 1 },
-  sub:          { fontSize: 12, color: '#555' },
-  settingsBtn:  { padding: 8, backgroundColor: '#1a1a1a', borderRadius: 10,
-                  borderWidth: 1, borderColor: '#333' },
+  sub:          { fontSize: 12, color: c.textHint },
+  settingsBtn:  { padding: 8, backgroundColor: c.bgCard, borderRadius: 10,
+                  borderWidth: 1, borderColor: c.borderLight },
   settingsBtnText: { fontSize: 20 },
 
   // 🌐 言語トグル
-  langBtn:      { paddingHorizontal: 10, paddingVertical: 8, backgroundColor: '#1a1a1a',
-                  borderRadius: 10, borderWidth: 1, borderColor: '#333',
+  langBtn:      { paddingHorizontal: 10, paddingVertical: 8, backgroundColor: c.bgCard,
+                  borderRadius: 10, borderWidth: 1, borderColor: c.borderLight,
                   justifyContent: 'center' },
-  langBtnText:  { fontSize: 13, fontWeight: 'bold', color: '#aaa' },
+  langBtnText:  { fontSize: 13, fontWeight: 'bold', color: c.textSecondary },
 
-  card:         { backgroundColor: '#1a1a1a', borderRadius: 16, padding: 16,
-                  marginBottom: 16, borderWidth: 1, borderColor: '#2a2a2a' },
-  cardTitle:    { fontSize: 15, fontWeight: 'bold', color: '#ffffff' },
+  card:         { backgroundColor: c.bgCard, borderRadius: 16, padding: 16,
+                  marginBottom: 16, borderWidth: 1, borderColor: c.border },
+  cardTitle:    { fontSize: 15, fontWeight: 'bold', color: c.textPrimary },
   chainRow:     { flexDirection: 'row', gap: 8, marginBottom: 8, marginTop: 14 },
   chainBtn:     { flex: 1, paddingVertical: 10, borderRadius: 10,
                   borderWidth: 1.5, alignItems: 'center' },
   chainBtnText: { fontWeight: 'bold', fontSize: 14 },
-  chainNote:    { color: '#444', fontSize: 11, textAlign: 'center' },
+  chainNote:    { color: c.textFaint, fontSize: 11, textAlign: 'center' },
 
   // Spending残高
-  balHint:      { color: '#444', fontSize: 10, marginTop: 6, marginBottom: 10 },
+  balHint:      { color: c.textFaint, fontSize: 10, marginTop: 6, marginBottom: 10 },
   balRow:       { flexDirection: 'row', justifyContent: 'space-between',
                   paddingVertical: 4 },
-  balToken:     { fontSize: 13, color: '#888' },
+  balToken:     { fontSize: 13, color: c.textMuted },
   balValue:     { fontSize: 16, fontWeight: 'bold' },
 
   // 収支テーブル
   tableRow:     { flexDirection: 'row', paddingVertical: 5 },
-  tableLabel:   { flex: 2, color: '#aaa', fontSize: 13 },
-  tableToken:   { flex: 3, textAlign: 'right', color: '#555', fontSize: 12, fontWeight: 'bold' },
+  tableLabel:   { flex: 2, color: c.textSecondary, fontSize: 13 },
+  tableToken:   { flex: 3, textAlign: 'right', color: c.textHint, fontSize: 12, fontWeight: 'bold' },
   tableValue:   { flex: 3, textAlign: 'right', fontSize: 13 },
-  divider:      { height: 1, backgroundColor: '#2a2a2a', marginVertical: 6 },
-  countText:    { color: '#555', fontSize: 13, textAlign: 'center', marginBottom: 16 },
-  importBtn:    { backgroundColor: '#1a2a1a', borderRadius: 14, paddingVertical: 18,
-                  alignItems: 'center', marginBottom: 12, borderWidth: 1.5, borderColor: '#00ff88' },
-  importBtnText:{ fontSize: 15, fontWeight: 'bold', color: '#fff' },
-  csvBtn:       { backgroundColor: '#1a1a2a', borderRadius: 14, paddingVertical: 14,
-                  alignItems: 'center', marginBottom: 12, borderWidth: 1, borderColor: '#4488ff' },
-  csvBtnText:   { fontSize: 14, fontWeight: 'bold', color: '#4488ff' },
-  subBtn:       { backgroundColor: '#1a1a1a', borderRadius: 14, paddingVertical: 14,
-                  alignItems: 'center', marginBottom: 12, borderWidth: 1, borderColor: '#2a2a2a' },
-  subBtnText:   { fontSize: 15, fontWeight: 'bold', color: '#aaa' },
-  footer:       { color: '#333', fontSize: 11, textAlign: 'center', marginTop: 16 },
+  divider:      { height: 1, backgroundColor: c.border, marginVertical: 6 },
+  countText:    { color: c.textHint, fontSize: 13, textAlign: 'center', marginBottom: 16 },
+  importBtn:    { backgroundColor: c.accentSurface, borderRadius: 14, paddingVertical: 18,
+                  alignItems: 'center', marginBottom: 12, borderWidth: 1.5, borderColor: c.income },
+  importBtnText:{ fontSize: 15, fontWeight: 'bold', color: c.textPrimary },
+  csvBtn:       { backgroundColor: c.infoSurface, borderRadius: 14, paddingVertical: 14,
+                  alignItems: 'center', marginBottom: 12, borderWidth: 1, borderColor: c.info },
+  csvBtnText:   { fontSize: 14, fontWeight: 'bold', color: c.info },
+  subBtn:       { backgroundColor: c.bgCard, borderRadius: 14, paddingVertical: 14,
+                  alignItems: 'center', marginBottom: 12, borderWidth: 1, borderColor: c.border },
+  subBtnText:   { fontSize: 15, fontWeight: 'bold', color: c.textSecondary },
+  footer:       { color: c.textFaintest, fontSize: 11, textAlign: 'center', marginTop: 16 },
 
   // 期間選択タブ
   periodTabs:       { flexDirection: 'row', gap: 6, marginBottom: 10 },
   periodTab:        { flex: 1, paddingVertical: 6, borderRadius: 8,
-                      backgroundColor: '#111', borderWidth: 1, borderColor: '#333',
+                      backgroundColor: c.bgInput, borderWidth: 1, borderColor: c.borderLight,
                       alignItems: 'center' },
-  periodTabActive:  { backgroundColor: '#1a3a2a', borderColor: '#00ff88' },
-  periodTabText:    { fontSize: 11, color: '#555', fontWeight: 'bold' },
-  periodTabTextActive: { color: '#00ff88' },
+  periodTabActive:  { backgroundColor: c.accentSurfaceOn, borderColor: c.income },
+  periodTabText:    { fontSize: 11, color: c.textHint, fontWeight: 'bold' },
+  periodTabTextActive: { color: c.income },
 
   // 月指定ピッカー
   monthPicker:      { flexDirection: 'row', alignItems: 'center',
                       justifyContent: 'center', gap: 16,
                       paddingVertical: 8, marginBottom: 6 },
-  monthPickerLabel: { fontSize: 14, color: '#fff', fontWeight: 'bold', minWidth: 100, textAlign: 'center' },
-  arrowBtn:         { padding: 8, backgroundColor: '#222', borderRadius: 8,
-                      borderWidth: 1, borderColor: '#444' },
-  arrowBtnText:     { fontSize: 16, color: '#00ff88' },
+  monthPickerLabel: { fontSize: 14, color: c.textPrimary, fontWeight: 'bold', minWidth: 100, textAlign: 'center' },
+  arrowBtn:         { padding: 8, backgroundColor: c.bgSubtle, borderRadius: 8,
+                      borderWidth: 1, borderColor: c.textFaint },
+  arrowBtnText:     { fontSize: 16, color: c.income },
 });
