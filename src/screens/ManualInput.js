@@ -15,19 +15,19 @@
  *     i18n の cat_* を参照するように変更。
  */
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   TextInput, Alert, SafeAreaView,
 } from 'react-native';
 import { StorageService } from '../services/StorageService';
 import { useI18n } from '../i18n/i18n';   // ★ 多言語対応
+import { useTheme } from '../theme/theme';   // ★ テーマ対応
 
 // ─────────────────────────────────────────
 // 定数
 // ─────────────────────────────────────────
 
-const CHAIN_COLORS = { SOL: '#9FFB50', BNB: '#F3BA2F', POL: '#9063CD' };
 
 /** 手動入力用カテゴリグループ（8大分類 → 22カテゴリ）
  *  key      : 内部用の安定キー（selectedGroup が保持する値）
@@ -90,6 +90,8 @@ const parseDateTime = (str) => {
 
 export default function ManualInput({ navigation, route }) {
   const { t } = useI18n();   // ★ 多言語対応
+  const { colors, chainColors } = useTheme();   // ★ テーマ対応
+  const s = useMemo(() => makeStyles(colors), [colors]);
 
   const initChain = route.params?.chain ?? 'SOL';
 
@@ -196,7 +198,7 @@ export default function ManualInput({ navigation, route }) {
               <Text style={s.selectedBadgeText}>
                 ✅ {t('cat_' + selectedCategory)}
                 {'  '}
-                <Text style={{ color: '#888', fontSize: 11 }}>
+                <Text style={{ color: colors.textMuted, fontSize: 11 }}>
                   {t(TYPE_LABEL_KEYS[selectedType] ?? 'group_expense')}
                 </Text>
               </Text>
@@ -212,12 +214,12 @@ export default function ManualInput({ navigation, route }) {
               <TouchableOpacity
                 key={c}
                 style={[s.chainBtn, {
-                  borderColor: CHAIN_COLORS[c],
-                  backgroundColor: chain === c ? CHAIN_COLORS[c] + '33' : 'transparent',
+                  borderColor: chainColors[c],
+                  backgroundColor: chain === c ? chainColors[c] + '33' : 'transparent',
                 }]}
                 onPress={() => setChain(c)}
               >
-                <Text style={[s.chainBtnText, { color: CHAIN_COLORS[c] }]}>{c}</Text>
+                <Text style={[s.chainBtnText, { color: chainColors[c] }]}>{c}</Text>
               </TouchableOpacity>
             ))}
           </View>
@@ -234,7 +236,7 @@ export default function ManualInput({ navigation, route }) {
               onChangeText={setGst}
               keyboardType="numeric"
               placeholder="0"
-              placeholderTextColor="#555"
+              placeholderTextColor={colors.textHint}
             />
           </View>
           <View style={s.fieldRow}>
@@ -245,7 +247,7 @@ export default function ManualInput({ navigation, route }) {
               onChangeText={setGmt}
               keyboardType="numeric"
               placeholder="0"
-              placeholderTextColor="#555"
+              placeholderTextColor={colors.textHint}
             />
           </View>
         </View>
@@ -260,7 +262,7 @@ export default function ManualInput({ navigation, route }) {
               value={dateStr}
               onChangeText={setDateStr}
               placeholder="2026/06/11 14:30"
-              placeholderTextColor="#555"
+              placeholderTextColor={colors.textHint}
             />
           </View>
           <Text style={s.hint}>{t('mi_datetime_hint')}</Text>
@@ -274,7 +276,7 @@ export default function ManualInput({ navigation, route }) {
             value={memo}
             onChangeText={setMemo}
             placeholder={t('mi_memo_ph')}
-            placeholderTextColor="#555"
+            placeholderTextColor={colors.textHint}
             multiline
           />
         </View>
@@ -295,53 +297,55 @@ export default function ManualInput({ navigation, route }) {
 // スタイル
 // ─────────────────────────────────────────
 
-const s = StyleSheet.create({
-  container:         { flex: 1, backgroundColor: '#0a0a0a' },
+const makeStyles = (c) => StyleSheet.create({
+  container:         { flex: 1, backgroundColor: c.bg },
   scroll:            { flex: 1, padding: 16 },
-  section:           { backgroundColor: '#1a1a1a', borderRadius: 12,
+  section:           { backgroundColor: c.bgCard, borderRadius: 12,
                        padding: 14, marginBottom: 12 },
-  sectionTitle:      { fontSize: 12, color: '#555', marginBottom: 10, letterSpacing: 1 },
+  sectionTitle:      { fontSize: 12, color: c.textHint, marginBottom: 10, letterSpacing: 1 },
 
   // 大分類
   groupRow:          { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 10 },
   groupBtn:          { paddingHorizontal: 10, paddingVertical: 7, borderRadius: 8,
-                       borderWidth: 1, borderColor: '#333' },
-  groupBtnActive:    { borderColor: '#00ff88', backgroundColor: '#00ff8822' },
-  groupBtnText:      { fontSize: 12, color: '#666' },
-  groupBtnTextActive:{ color: '#00ff88' },
+                       borderWidth: 1, borderColor: c.borderLight },
+  groupBtnActive:    { borderColor: c.income, backgroundColor: c.accentBg },
+  groupBtnText:      { fontSize: 12, color: c.textDim },
+  groupBtnTextActive:{ color: c.income },
 
   // 細分類
   catRow:            { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 8 },
   catBtn:            { paddingHorizontal: 10, paddingVertical: 7, borderRadius: 8,
-                       borderWidth: 1, borderColor: '#333' },
-  catBtnActive:      { borderColor: '#4af', backgroundColor: '#4af2' },
-  catBtnText:        { fontSize: 12, color: '#888' },
-  catBtnTextActive:  { color: '#4af' },
+                       borderWidth: 1, borderColor: c.borderLight },
+  catBtnActive:      { borderColor: c.infoAlt, backgroundColor: c.infoAltBg },
+  catBtnText:        { fontSize: 12, color: c.textMuted },
+  catBtnTextActive:  { color: c.infoAlt },
 
   // 選択中バッジ
-  selectedBadge:     { backgroundColor: '#0d2a1a', borderRadius: 8,
+  selectedBadge:     { backgroundColor: c.badgeSurface, borderRadius: 8,
                        padding: 8, marginTop: 4 },
-  selectedBadgeText: { color: '#00ff88', fontSize: 13, fontWeight: 'bold' },
+  selectedBadgeText: { color: c.income, fontSize: 13, fontWeight: 'bold' },
 
   // チェーン
   chainRow:          { flexDirection: 'row', gap: 10 },
   chainBtn:          { flex: 1, paddingVertical: 10, borderRadius: 8,
                        borderWidth: 1.5, alignItems: 'center' },
-  chainBtnText:      { fontWeight: 'bold', fontSize: 13 },
-
+  chainBtnText:      { fontWeight: 'bold', fontSize: 13,
+                       textShadowColor: c.chainTextShadow,
+                       textShadowOffset: { width: 0, height: 0 },
+                       textShadowRadius: c.chainTextShadowRadius },
   // フィールド
   fieldRow:          { flexDirection: 'row', alignItems: 'center',
                        marginBottom: 8 },
-  fieldLabel:        { fontSize: 13, color: '#888', width: 50 },
-  fieldInput:        { flex: 1, fontSize: 14, color: '#fff', borderWidth: 1,
-                       borderColor: '#333', borderRadius: 8, paddingHorizontal: 12,
-                       paddingVertical: 8, backgroundColor: '#111' },
-  hint:              { fontSize: 11, color: '#444', marginTop: 2 },
+  fieldLabel:        { fontSize: 13, color: c.textMuted, width: 50 },
+  fieldInput:        { flex: 1, fontSize: 14, color: c.textPrimary, borderWidth: 1,
+                       borderColor: c.borderLight, borderRadius: 8, paddingHorizontal: 12,
+                       paddingVertical: 8, backgroundColor: c.bgInput },
+  hint:              { fontSize: 11, color: c.textFaint, marginTop: 2 },
 
   // ボトムバー
-  bottomBar:         { padding: 16, backgroundColor: '#0a0a0a',
-                       borderTopWidth: 1, borderTopColor: '#222' },
-  saveBtn:           { backgroundColor: '#00ff88', borderRadius: 12,
+  bottomBar:         { padding: 16, backgroundColor: c.bg,
+                       borderTopWidth: 1, borderTopColor: c.bgSubtle },
+  saveBtn:           { backgroundColor: c.income, borderRadius: 12,
                        paddingVertical: 16, alignItems: 'center' },
-  saveBtnText:       { color: '#000', fontWeight: 'bold', fontSize: 16 },
+  saveBtnText:       { color: c.onPrimary, fontWeight: 'bold', fontSize: 16 },
 });

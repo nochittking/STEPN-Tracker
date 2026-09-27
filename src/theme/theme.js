@@ -81,12 +81,17 @@ export const DARK = {
   borderLight:   '#333333',
 
   // テキスト
+  //   ※ 無彩色は #fff → #333 までの階調を全段そろえてある。
+  //     画面側で近い値に寄せるとダークの見た目がずれるため、必ず該当段を使うこと。
   textPrimary:   '#ffffff',
+  textBright:    '#cccccc',
+  textBody:      '#bbbbbb',
   textSecondary: '#aaaaaa',
   textMuted:     '#888888',
   textHint:      '#555555',
   textFaint:     '#444444',
-  textMid:       '#777777',   // textMuted と textHint の中間
+  textMid:       '#777777',
+  textDim:       '#666666',
   textFaintest:  '#333333',   // フッター等、最も控えめな装飾文字
 
   // 意味を持つ色
@@ -113,9 +118,12 @@ export const DARK = {
   accentSurface:   '#1a2a1a',   // 取込ボタンの地
   accentSurfaceOn: '#1a3a2a',   // 選択中の期間タブの地
   infoSurface:     '#1a1a2a',   // CSV出力ボタンの地
+  infoAlt:         '#44aaff',   // カテゴリ選択など info とは別系統の青
+  infoAltBg:       '#44aaff22',
 
   // 状態を示す地（RecordListScreen）
   selectedSurface: '#001a0d',   // 選択中のレコードカード
+  badgeSurface:    '#0d2a1a',   // 選択中カテゴリのバッジ地
   dangerSurface:   '#1a0000',   // 削除ボタンなど危険操作の地
   pendingSurface:  '#1a1200',   // 仮保存カードの地
 
@@ -169,11 +177,14 @@ export const LIGHT = {
 
   // テキスト（カード #d2d6dd 上でのコントラスト目標から逆算）
   textPrimary:   '#151920',   // 12.09:1
+  textBright:    '#23272e',
+  textBody:      '#2b2f36',
   textSecondary: '#34383f',   //  8.08:1
   textMuted:     '#474b52',   //  6.01:1
   textHint:      '#585c63',   //  4.61:1
   textFaint:     '#767b84',   // 区切り線・バッジ等の装飾用（本文には使わない）
-  textMid:       '#4f545c',   // textMuted と textHint の中間
+  textMid:       '#4f545c',
+  textDim:       '#545960',
   textFaintest:  '#8b9098',   // フッター等、最も控えめな装飾文字
 
   // 意味を持つ色（すべてカード上で 4.5:1 以上）
@@ -200,9 +211,12 @@ export const LIGHT = {
   accentSurface:   '#c7e3d3',   // 取込ボタンの地
   accentSurfaceOn: '#b6dbc5',   // 選択中の期間タブの地
   infoSurface:     '#cfdef3',   // CSV出力ボタンの地
+  infoAlt:         '#0d5698',   // カテゴリ選択など info とは別系統の青
+  infoAltBg:       '#0d569826',
 
   // 状態を示す地（RecordListScreen）
   selectedSurface: '#c2e2d0',   // 選択中のレコードカード
+  badgeSurface:    '#c9e5d5',   // 選択中カテゴリのバッジ地
   dangerSurface:   '#eed3d1',   // 削除ボタンなど危険操作の地
   pendingSurface:  '#ebdfc2',   // 仮保存カードの地
 
