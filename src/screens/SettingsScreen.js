@@ -24,7 +24,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { StorageService } from '../services/StorageService';
 import { APP_VERSION } from '../constants';
 import { useI18n } from '../i18n/i18n';   // ★ 多言語対応
-import { useTheme, CHAIN_COLORS } from '../theme/theme';   // ★ テーマ対応
+import { useTheme } from '../theme/theme';   // ★ テーマ対応
 
 const LANGS = [
   { code: 'ja', label: '日本語' },
@@ -38,7 +38,7 @@ const THEMES = [
 
 export default function SettingsScreen({ navigation }) {
   const { t, lang, setLang }      = useI18n();   // ★ 多言語対応
-  const { colors, theme, setTheme } = useTheme();  // ★ テーマ対応
+  const { colors, theme, setTheme, chainColors } = useTheme();  // ★ テーマ対応
   const s = useMemo(() => makeStyles(colors), [colors]);
 
   const [chain,   setChain]   = useState('SOL');
@@ -143,12 +143,12 @@ export default function SettingsScreen({ navigation }) {
               <TouchableOpacity
                 key={c}
                 style={[s.chainBtn, {
-                  borderColor: CHAIN_COLORS[c],
-                  backgroundColor: chain === c ? CHAIN_COLORS[c] + '33' : 'transparent',
+                  borderColor: chainColors[c],
+                  backgroundColor: chain === c ? chainColors[c] + '33' : 'transparent',
                 }]}
                 onPress={() => setChain(c)}
               >
-                <Text style={[s.chainBtnText, { color: CHAIN_COLORS[c] }]}>{c}</Text>
+                <Text style={[s.chainBtnText, { color: chainColors[c] }]}>{c}</Text>
               </TouchableOpacity>
             ))}
           </View>

@@ -35,10 +35,28 @@ const THEME_KEY = 'settings_theme';
 //   テーマによって変えてはいけない。
 // ─────────────────────────────────────────
 
+/** ブランドカラー（各チェーンの公式色。ダークテーマではこのまま使う） */
 export const CHAIN_COLORS = {
   SOL: '#9FFB50',  // STEPN Green
   BNB: '#F3BA2F',  // BNB 公式 Yellow
   POL: '#9063CD',  // STEPN GO Purple
+};
+
+/** ライトテーマ用のチェーンカラー
+ *
+ *  ブランドカラーは暗い背景で映えるように作られているため、
+ *  明るい背景に文字やボーダーとして置くと読めない。実測値：
+ *
+ *    カード #d2d6dd 上   SOL 1.14:1 / BNB 1.21:1 / POL 2.97:1  （いずれも不可）
+ *
+ *  そこで色相はブランド色のまま保ち、明度だけ落として 4.5:1 を満たす値にしている。
+ *  「どのチェーンか」は色味で識別できるまま、文字として読めるようにする狙い。
+ *  ※ ダークテーマ側は従来どおりブランド色をそのまま使う（見た目を変えないため）。
+ */
+export const CHAIN_COLORS_LIGHT = {
+  SOL: '#406520',  // 4.65:1
+  BNB: '#715716',  // 4.68:1
+  POL: '#6a4997',  // 4.78:1
 };
 
 // ─────────────────────────────────────────
@@ -48,6 +66,7 @@ export const CHAIN_COLORS = {
 
 export const DARK = {
   name: 'dark',
+  chain: CHAIN_COLORS,        // ダークはブランド色をそのまま
 
   // 背景
   bg:            '#0a0a0a',
@@ -106,6 +125,7 @@ export const DARK = {
 
 export const LIGHT = {
   name: 'light',
+  chain: CHAIN_COLORS_LIGHT,  // ライトは明度を落としたチェーンカラー
 
   // 背景
   //   ※ 純白（#ffffff）は実機で眩しすぎたため、5段階トーンダウンしている。
@@ -174,7 +194,7 @@ const ThemeContext = createContext({
   theme:    'dark',
   setTheme: () => {},
   colors:   DARK,
-  chainColors: CHAIN_COLORS,
+  chainColors: DARK.chain,
 });
 
 /**
@@ -205,7 +225,9 @@ export function ThemeProvider({ children }) {
     theme,
     setTheme,
     colors: THEMES[theme] ?? DARK,   // 未知の値が入ってもダークに落とす
-    chainColors: CHAIN_COLORS,
+    // ★ チェーンカラーはテーマで切り替わる。画面側は CHAIN_COLORS を直接
+    //   import せず、必ず useTheme() の chainColors を使うこと。
+    chainColors: (THEMES[theme] ?? DARK).chain,
   }), [theme]);
 
   return (
