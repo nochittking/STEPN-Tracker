@@ -8,7 +8,7 @@
  * - 削除：確認ダイアログ付き
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, TextInput,
   Alert, Switch, Image, Modal, Dimensions, StyleSheet,
@@ -18,11 +18,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { StorageService } from '../services/StorageService';
 // ※ 表示ラベルは i18n の cat_* を使う。ここはカテゴリ一覧（キー）の取得のみに使用
 import { CATEGORY_LABELS } from './ImportScreen_constants';
-import { s } from './RecordDetail_styles';
+import { makeStyles } from './RecordDetail_styles';
 import { useI18n } from '../i18n/i18n';   // ★ 多言語対応
 
 // ─── 定数 ────────────────────────────────
-const CHAIN_COLORS = { SOL: '#9FFB50', BNB: '#F3BA2F', POL: '#9063CD' };
 const CHAIN_TEXT   = { SOL: '#000',    BNB: '#000',    POL: '#fff'    };
 const CHAINS       = ['SOL', 'BNB', 'POL'];
 
@@ -54,10 +53,12 @@ function fieldLabel(key, t) {
 /** 信頼度バッジ */
 function ConfBadge({ score }) {
   const { t } = useI18n();
+  const { colors } = useTheme();   // ★ テーマ対応
+  const s = useMemo(() => makeStyles(colors), [colors]);
   const { label, color } =
-    score >= 0.9 ? { label: t('conf_high'), color: '#00ff88' } :
-    score >= 0.6 ? { label: t('conf_mid'),  color: '#ffaa00' } :
-                   { label: t('conf_low'),  color: '#ff4444' };
+    score >= 0.9 ? { label: t('conf_high'), color: colors.confHigh } :
+    score >= 0.6 ? { label: t('conf_mid'),  color: colors.confMid  } :
+                   { label: t('conf_low'),  color: colors.confLow  };
   return (
     <View style={[s.confBadge, { borderColor: color }]}>
       <Text style={[s.confText, { color }]}>{label}</Text>
@@ -68,6 +69,9 @@ function ConfBadge({ score }) {
 // ─── メイン画面 ──────────────────────────
 export default function RecordDetail({ navigation, route }) {
   const { t } = useI18n();   // ★ 多言語対応
+  const { colors, chainColors } = useTheme();   // ★ テーマ対応
+  const s  = useMemo(() => makeStyles(colors), [colors]);
+  const ts = useMemo(() => makeThumbStyles(colors), [colors]);
 
   const { record } = route.params;
 
@@ -139,7 +143,7 @@ export default function RecordDetail({ navigation, route }) {
   }, []);
 
   // ── 金額表示 ───────────────────────────
-  const amountColor = record.type === 'income' ? '#00ff88' : '#ff4444';
+  const amountColor = record.type === 'income' ? colors.income : colors.expense;
   const amountSign  = record.type === 'income' ? '+' : '-';
   const amountStr   = record.gst_amount > 0
     ? `${amountSign}${record.gst_amount} GST`
@@ -152,11 +156,11 @@ export default function RecordDetail({ navigation, route }) {
       {/* ナビゲーションヘッダー */}
       <View style={{ flexDirection: 'row', alignItems: 'center',
                      paddingTop: 4, paddingBottom: 16, paddingHorizontal: 16,
-                     borderBottomWidth: 1, borderBottomColor: '#222' }}>
+                     borderBottomWidth: 1, borderBottomColor: colors.bgSubtle }}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginRight: 12 }}>
-          <Text style={{ color: '#00ff88', fontSize: 16 }}>{t('rd_back')}</Text>
+          <Text style={{ color: colors.income, fontSize: 16 }}>{t('rd_back')}</Text>
         </TouchableOpacity>
-        <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 16, flex: 1 }}>
+        <Text style={{ color: colors.textPrimary, fontWeight: 'bold', fontSize: 16, flex: 1 }}>
           {t('rd_title')}
         </Text>
         <TouchableOpacity onPress={handleDelete} style={s.deleteBtn}>
@@ -241,7 +245,7 @@ export default function RecordDetail({ navigation, route }) {
                 ))}
               </View>
             ) : (
-              <Text style={[s.fieldValue, { color: CHAIN_COLORS[chain] ?? '#888' }]}>
+              <Text style={[s.fieldValue, { color: chainColors[chain] ?? colors.textMuted, textShadowColor: colors.chainTextShadow, textShadowOffset: { width: 0, height: 0 }, textShadowRadius: colors.chainTextShadowRadius }]}>
                 {chain ?? t('rd_chain_none')}
               </Text>
             )}
@@ -350,7 +354,7 @@ export default function RecordDetail({ navigation, route }) {
                       <Switch
                         value={!!extra[key]}
                         onValueChange={v => setExtraField(key, v)}
-                        trackColor={{ true: '#00ff88' }}
+                        trackColor={{ true: colors.income }}
                       />
                     </View>
                   );
@@ -417,7 +421,7 @@ export default function RecordDetail({ navigation, route }) {
         )}
 
         {/* Record ID（参考表示） */}
-        <Text style={{ color: '#333', fontSize: 10, textAlign: 'center', marginBottom: 8 }}>
+        <Text style={{ color: colors.textFaintest, fontSize: 10, textAlign: 'center', marginBottom: 8 }}>
           ID: {record.id}
         </Text>
 
@@ -458,14 +462,14 @@ export default function RecordDetail({ navigation, route }) {
 // ─── サムネイル関連スタイル ───────────────
 const { width: SCREEN_W } = Dimensions.get('window');
 
-const ts = StyleSheet.create({
+const makeThumbStyles = (c) => StyleSheet.create({
   thumbWrap:       { width: 80, marginRight: 12, alignItems: 'center' },
   thumbImg:        { width: 76, height: 100, borderRadius: 8,
-                     borderWidth: 1, borderColor: '#333' },
-  thumbLabel:      { color: '#666', fontSize: 10, marginTop: 4 },
+                     borderWidth: 1, borderColor: c.borderLight },
+  thumbLabel:      { color: c.textDim, fontSize: 10, marginTop: 4 },
   thumbModalBg:    { flex: 1, backgroundColor: 'rgba(0,0,0,0.92)',
                      justifyContent: 'center', alignItems: 'center' },
   thumbModalImg:   { width: SCREEN_W * 0.9, height: SCREEN_W * 1.6,
                      borderRadius: 8 },
-  thumbModalClose: { color: '#888', fontSize: 14, marginTop: 16 },
+  thumbModalClose: { color: c.textMuted, fontSize: 14, marginTop: 16 },
 });
