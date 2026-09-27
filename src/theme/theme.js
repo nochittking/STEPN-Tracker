@@ -108,19 +108,21 @@ export const LIGHT = {
   name: 'light',
 
   // 背景
-  //   ※ 純白（#ffffff）は実機で眩しすぎたため、カードを少しだけトーンダウンしている。
-  //     カードの明るさは純白比で約7%落としたが、背景との明度差はむしろ広がっており
-  //     （1.091:1 → 1.124:1）、カードの輪郭は以前より見やすくなっている。
-  bg:            '#e8eaee',
-  bgCard:        '#f6f7f9',
-  bgInput:       '#fcfcfd',   // 入力欄はカードより気持ち明るくして「欄」だと分かるようにする
-  bgModal:       '#f6f7f9',
-  bgSubtle:      '#dfe2e7',
+  //   ※ 純白（#ffffff）は実機で眩しすぎたため、2段階トーンダウンしている。
+  //     カードの明るさは純白比で約14%ダウン。背景との明度差はむしろ広がっており
+  //     （純白時 1.091:1 → 現在 1.148:1）、カードの輪郭は以前より見やすい。
+  //     さらに落とす場合は、暗くなった分だけ textHint と warning が
+  //     4.5:1 を割るので、文字色も一緒に濃くすること。
+  bg:            '#dde0e6',
+  bgCard:        '#edeff2',
+  bgInput:       '#f7f8fa',   // 入力欄はカードより気持ち明るくして「欄」だと分かるようにする
+  bgModal:       '#edeff2',
+  bgSubtle:      '#d3d7de',
   overlay:       'rgba(0,0,0,0.55)',
 
   // ボーダー
-  border:        '#d4d8de',
-  borderLight:   '#c2c7cf',
+  border:        '#c9ced6',
+  borderLight:   '#b7bdc7',
 
   // テキスト
   //   ※ textHint は説明文（例「このアプリで記録を始める前の残高を入力してや」）に
@@ -129,16 +131,16 @@ export const LIGHT = {
   textPrimary:   '#14161a',
   textSecondary: '#3f444b',
   textMuted:     '#565c65',
-  textHint:      '#6b7280',
+  textHint:      '#646a73',
   textFaint:     '#9aa0a8',   // 区切り線・バッジ等の装飾用（本文には使わない）
 
   // 意味を持つ色（白背景で読める濃さに調整）
   income:        '#00703a',
   expense:       '#c62828',
-  warning:       '#9a6200',
+  warning:       '#8e5a00',
   pending:       '#b25000',
   info:          '#1257a8',
-  infoBg:        '#e3edfa',   // 照合結果などの情報ボックス背景
+  infoBg:        '#dde8f7',   // 照合結果などの情報ボックス背景
 
   // ボタン
   btnPrimary:    '#00b862',   // 上に黒文字を載せる前提の明るめグリーン
@@ -150,11 +152,11 @@ export const LIGHT = {
 
   // 選択状態のアクセント背景
   accentBg:      '#00b8621f',
-  accentBgSolid: '#d3eddf',
+  accentBgSolid: '#cbe8d8',
 
   // 信頼度バッジ
   confHigh:      '#00703a',
-  confMid:       '#9a6200',
+  confMid:       '#8e5a00',
   confLow:       '#c62828',
   confUnknown:   '#8a9099',
 };
