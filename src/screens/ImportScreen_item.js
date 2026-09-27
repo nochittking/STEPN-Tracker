@@ -612,6 +612,9 @@ function SpecialFlow({
 // 特殊フロー完了後の表示
 function SpecialFlowDone({ item }) {
   const { t, lang } = useI18n();
+  // ※ 別コンポーネントなので、スタイルは自前で組み立てる必要がある
+  const { colors } = useTheme();
+  const s = useMemo(() => makeStyles(colors), [colors]);
   const r = item.analyzeResult;
   const cat = r.category;
 

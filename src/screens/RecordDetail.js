@@ -20,6 +20,7 @@ import { StorageService } from '../services/StorageService';
 import { CATEGORY_LABELS } from './ImportScreen_constants';
 import { makeStyles } from './RecordDetail_styles';
 import { useI18n } from '../i18n/i18n';   // ★ 多言語対応
+import { useTheme } from '../theme/theme';   // ★ テーマ対応
 
 // ─── 定数 ────────────────────────────────
 const CHAIN_TEXT   = { SOL: '#000',    BNB: '#000',    POL: '#fff'    };

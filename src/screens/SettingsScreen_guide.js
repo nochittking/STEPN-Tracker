@@ -44,6 +44,10 @@ export default function GuideScreen({ navigation }) {
 }
 
 function Section({ title, children }) {
+  // ※ 別コンポーネントなので、スタイルは自前で組み立てる必要がある
+  const { colors } = useTheme();
+  const s = useMemo(() => makeStyles(colors), [colors]);
+
   return (
     <View style={s.section}>
       <Text style={s.sectionTitle}>{title}</Text>
