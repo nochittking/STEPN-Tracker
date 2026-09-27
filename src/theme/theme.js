@@ -108,57 +108,60 @@ export const LIGHT = {
   name: 'light',
 
   // 背景
-  //   ※ 純白（#ffffff）は実機で眩しすぎたため、2段階トーンダウンしている。
-  //     カードの明るさは純白比で約14%ダウン。背景との明度差はむしろ広がっており
-  //     （純白時 1.091:1 → 現在 1.148:1）、カードの輪郭は以前より見やすい。
-  //     さらに落とす場合は、暗くなった分だけ textHint と warning が
-  //     4.5:1 を割るので、文字色も一緒に濃くすること。
-  bg:            '#dde0e6',
-  bgCard:        '#edeff2',
-  bgInput:       '#f7f8fa',   // 入力欄はカードより気持ち明るくして「欄」だと分かるようにする
-  bgModal:       '#edeff2',
-  bgSubtle:      '#d3d7de',
+  //   ※ 純白（#ffffff）は実機で眩しすぎたため、5段階トーンダウンしている。
+  //     カードは純白比で約33%ダウン。ダークから切り替えた瞬間の眩しさ
+  //     （目の順応によるもの）を抑えることを優先した配色。
+  //     背景との明度差はトーンを落とすほど広がっており（純白時 1.091:1 →
+  //     現在 1.188:1）、カードの輪郭はむしろ見やすくなっている。
+  //
+  //   ★ さらにトーンを落とす場合の注意
+  //     カードが暗くなるぶん、その上に載る濃い文字のコントラストは必ず下がる。
+  //     文字色はコントラスト目標から逆算しているので、カード色を変えたら
+  //     textPrimary=12:1 / textSecondary=8:1 / textMuted=6:1 / textHint=4.6:1
+  //     を満たす値に引き直すこと。意味色（income等）も 4.5:1 の再確認が必要。
+  bg:            '#c0c5ce',
+  bgCard:        '#d2d6dd',
+  bgInput:       '#e0e3e8',   // 入力欄はカードより明るくして「欄」だと分かるようにする
+  bgModal:       '#d2d6dd',
+  bgSubtle:      '#b6bcc6',
   overlay:       'rgba(0,0,0,0.55)',
 
   // ボーダー
-  border:        '#c9ced6',
-  borderLight:   '#b7bdc7',
+  border:        '#a8afbb',
+  borderLight:   '#98a0ae',
 
-  // テキスト
-  //   ※ textHint は説明文（例「このアプリで記録を始める前の残高を入力してや」）に
-  //     使われる実読文字なので、4.5:1 を満たす濃さが必要。
-  //     階層を保ったまま全段を一段ずつ濃くしている。
-  textPrimary:   '#14161a',
-  textSecondary: '#3f444b',
-  textMuted:     '#565c65',
-  textHint:      '#646a73',
-  textFaint:     '#9aa0a8',   // 区切り線・バッジ等の装飾用（本文には使わない）
+  // テキスト（カード #d2d6dd 上でのコントラスト目標から逆算）
+  textPrimary:   '#151920',   // 12.09:1
+  textSecondary: '#34383f',   //  8.08:1
+  textMuted:     '#474b52',   //  6.01:1
+  textHint:      '#585c63',   //  4.61:1
+  textFaint:     '#767b84',   // 区切り線・バッジ等の装飾用（本文には使わない）
 
-  // 意味を持つ色（白背景で読める濃さに調整）
-  income:        '#00703a',
-  expense:       '#c62828',
-  warning:       '#8e5a00',
-  pending:       '#b25000',
+  // 意味を持つ色（すべてカード上で 4.5:1 以上）
+  income:        '#006937',
+  expense:       '#af2323',
+  warning:       '#7e5000',
+  pending:       '#944300',
   info:          '#1257a8',
-  infoBg:        '#dde8f7',   // 照合結果などの情報ボックス背景
+  infoBg:        '#c2d2e8',   // 照合結果などの情報ボックス背景
 
   // ボタン
-  btnPrimary:    '#00b862',   // 上に黒文字を載せる前提の明るめグリーン
+  btnPrimary:    '#00a457',   // 上に黒文字を載せる前提のグリーン
   onPrimary:     '#000000',
-  btnSecondary:  '#e8eaee',
-  btnDanger:     '#c62828',
+  btnSecondary:  '#c4c9d2',
+  btnDanger:     '#af2323',
   onDanger:      '#ffffff',
-  btnDisabled:   '#b9d9c7',
+  btnDisabled:   '#a3bfae',
 
   // 選択状態のアクセント背景
-  accentBg:      '#00b8621f',
-  accentBgSolid: '#cbe8d8',
+  accentBg:      '#00a45726',
+  accentBgSolid: '#b4d8c4',
 
   // 信頼度バッジ
-  confHigh:      '#00703a',
-  confMid:       '#8e5a00',
-  confLow:       '#c62828',
-  confUnknown:   '#8a9099',
+  confHigh:      '#006937',
+  confMid:       '#7e5000',
+  confLow:       '#af2323',
+  confUnknown:   '#585c63',
 };
 
 const THEMES = { dark: DARK, light: LIGHT };
