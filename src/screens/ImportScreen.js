@@ -8,7 +8,7 @@
  * phase 4: DONE      → 保存完了
  */
 
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   SafeAreaView, StatusBar, Alert, ActivityIndicator,
@@ -23,12 +23,13 @@ import {
   getMbRewardItems, getKeptGemColor, getChainSuggestion,
 } from '../services/VisionAnalyzer';
 import { ConfirmItem, DonePhase } from './ImportScreen_item';
-import { s } from './ImportScreen_styles';
+import { makeStyles } from './ImportScreen_styles';
 import {
   CHAIN_COLORS, CHAIN_TEXT, CATEGORY_LABELS, CATEGORY_GROUPS,
   MB_QUALITY, GEM_COLORS, confLabel,
 } from './ImportScreen_constants';
-import { useI18n } from '../i18n/i18n';   // ★ 多言語対応
+import { useI18n } from '../i18n/i18n';
+import { useTheme } from '../theme/theme';   // ★ テーマ対応   // ★ 多言語対応
 
 /** FNV-1a ハッシュ（純JS実装・expo-crypto 不要） */
 const fnv1aHash = (str) => {
@@ -42,6 +43,8 @@ const fnv1aHash = (str) => {
 
 export default function ImportScreen({ navigation, route }) {
   const { t, lang } = useI18n();   // ★ 多言語対応
+  const { colors, theme, chainColors } = useTheme();   // ★ テーマ対応
+  const s = useMemo(() => makeStyles(colors), [colors]);
   const { chain: initChain = 'BNB' } = route.params ?? {};
 
   // ヘッダータイトルを現在の言語で更新（言語切替に即反応）
@@ -421,7 +424,7 @@ export default function ImportScreen({ navigation, route }) {
 
   return (
     <SafeAreaView style={s.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#0a0a0a" />
+      <StatusBar barStyle={theme === 'dark' ? 'light-content' : 'dark-content'} backgroundColor={colors.bg} />
 
       {phase === 'SELECT'    && <SelectPhase onPick={handlePickImages} />}
       {phase === 'ANALYZING' && <AnalyzingPhase progress={progress} />}
@@ -460,6 +463,8 @@ export default function ImportScreen({ navigation, route }) {
 
 function SelectPhase({ onPick }) {
   const { t } = useI18n();
+  const { colors, chainColors } = useTheme();   // ★ テーマ対応
+  const s = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={s.centerBox}>
       <Text style={s.phaseEmoji}>📸</Text>
@@ -478,11 +483,13 @@ function SelectPhase({ onPick }) {
 
 function AnalyzingPhase({ progress }) {
   const { t } = useI18n();
+  const { colors, chainColors } = useTheme();   // ★ テーマ対応
+  const s = useMemo(() => makeStyles(colors), [colors]);
   const pct = progress.total > 0
     ? Math.round((progress.done / progress.total) * 100) : 0;
   return (
     <View style={s.centerBox}>
-      <ActivityIndicator size="large" color="#00ff88" />
+      <ActivityIndicator size="large" color={colors.income} />
       <Text style={s.phaseTitle}>{t('analyzing_title')}</Text>
       <Text style={s.phaseSub}>{t('analyzing_count', progress.done, progress.total)}</Text>
       <View style={s.progressBar}>
@@ -503,6 +510,8 @@ function ConfirmPhase({
   onKeptGemColor, onLinkMbCost, onToggleSkip, onSave, isSaving,
 }) {
   const { t } = useI18n();
+  const { colors, chainColors } = useTheme();   // ★ テーマ対応
+  const s = useMemo(() => makeStyles(colors), [colors]);
   const chainedCount  = items.filter((i) => i.selectedChain && !i.skipSave).length;
   const pendingItems  = items.filter((i) => !i.selectedChain && !i.skipSave).length;
   const unknownCount  = items.filter(
@@ -553,7 +562,7 @@ function ConfirmPhase({
       {/* 保存ボタン */}
       <View style={s.saveBar}>
         {skipCount > 0 && (
-          <Text style={[s.saveHint, { color: '#ff8844' }]}>
+          <Text style={[s.saveHint, { color: colors.warnAlt }]}>
             {t('skip_hint', skipCount)}
           </Text>
         )}
@@ -563,7 +572,7 @@ function ConfirmPhase({
           </Text>
         )}
         {unknownCount > 0 && (
-          <Text style={[s.saveHint, { color: '#ff4444' }]}>
+          <Text style={[s.saveHint, { color: colors.expense }]}>
             {t('unknown_hint', unknownCount)}
           </Text>
         )}

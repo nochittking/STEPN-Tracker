@@ -3,16 +3,17 @@
  * ConfirmItem・ManualCategoryPicker・SpecialFlow・SpecialFlowDone
  */
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View, Text, TouchableOpacity, Modal, Image, TextInput, Alert,
 } from 'react-native';
-import { s } from './ImportScreen_styles';
+import { makeStyles } from './ImportScreen_styles';
 import {
   CHAIN_COLORS, CHAIN_TEXT, CATEGORY_LABELS, CATEGORY_GROUPS,
   MB_QUALITY, GEM_COLORS, confLabel,
 } from './ImportScreen_constants';
-import { useI18n } from '../i18n/i18n';   // ★ 多言語対応
+import { useI18n } from '../i18n/i18n';
+import { useTheme } from '../theme/theme';   // ★ テーマ対応   // ★ 多言語対応
 
 
 function ConfirmItem({
@@ -21,18 +22,20 @@ function ConfirmItem({
   onLinkMbCost, onToggleSkip,
 }) {
   const { t } = useI18n();
+  const { colors, chainColors } = useTheme();   // ★ テーマ対応
+  const s = useMemo(() => makeStyles(colors), [colors]);
   const r        = item.analyzeResult;
   const category = item.manualCategory ?? r.category;
   const label    = t('cat_' + category);
   const conf     = r.confidence ?? 0;
-  const confInfo = confLabel(conf);
+  const confInfo = confLabel(conf, colors);
 
   // 重複判定
   const dupType = item.duplicateType;  // 'exact' | 'similar' | null
   const isSkipped = item.skipSave;
-  const dupBorderColor = dupType === 'exact' ? '#ff4444'
-                       : dupType === 'similar' ? '#ff8844'
-                       : '#333';
+  const dupBorderColor = dupType === 'exact' ? colors.expense
+                       : dupType === 'similar' ? colors.warnAlt
+                       : colors.borderLight;
 
   // MB紐付け用：同バッチ内のmystery_box_openを取得
   const mbCostItems = (allItems ?? []).filter(
@@ -72,20 +75,20 @@ function ConfirmItem({
       {/* 重複警告バナー */}
       {dupType === 'exact' && (
         <TouchableOpacity
-          style={{ backgroundColor: '#ff444422', borderRadius: 8, padding: 8, marginBottom: 8 }}
+          style={{ backgroundColor: colors.expense + '22', borderRadius: 8, padding: 8, marginBottom: 8 }}
           onPress={onToggleSkip}
         >
-          <Text style={{ color: '#ff4444', fontSize: 12, fontWeight: 'bold' }}>
+          <Text style={{ color: colors.expense, fontSize: 12, fontWeight: 'bold' }}>
             {t('dup_exact', isSkipped)}
           </Text>
         </TouchableOpacity>
       )}
       {dupType === 'similar' && (
         <TouchableOpacity
-          style={{ backgroundColor: '#ff884422', borderRadius: 8, padding: 8, marginBottom: 8 }}
+          style={{ backgroundColor: colors.warnAlt + '22', borderRadius: 8, padding: 8, marginBottom: 8 }}
           onPress={onToggleSkip}
         >
-          <Text style={{ color: '#ff8844', fontSize: 12, fontWeight: 'bold' }}>
+          <Text style={{ color: colors.warnAlt, fontSize: 12, fontWeight: 'bold' }}>
             {t('dup_similar', isSkipped)}
           </Text>
         </TouchableOpacity>
@@ -113,12 +116,12 @@ function ConfirmItem({
           {(r.gst_amount > 0 || r.gmt_amount > 0) && (
             <View style={s.amountRow}>
               {r.gst_amount > 0 && (
-                <Text style={[s.amount, { color: r.type === 'income' ? '#00ff88' : '#ff4444' }]}>
+                <Text style={[s.amount, { color: r.type === 'income' ? colors.income : colors.expense }]}>
                   {r.type === 'income' ? '+' : '-'}{r.gst_amount.toFixed(2)} GST
                 </Text>
               )}
               {r.gmt_amount > 0 && (
-                <Text style={[s.amount, { color: r.type === 'income' ? '#00ff88' : '#ff4444' }]}>
+                <Text style={[s.amount, { color: r.type === 'income' ? colors.income : colors.expense }]}>
                   {r.type === 'income' ? '+' : '-'}{r.gmt_amount.toFixed(2)} GMT
                 </Text>
               )}
@@ -140,14 +143,14 @@ function ConfirmItem({
                 value={inputDate}
                 onChangeText={setInputDate}
                 placeholder="2026/05/20"
-                placeholderTextColor="#444"
+                placeholderTextColor={colors.textFaint}
               />
               <TextInput
                 style={s.dateInput}
                 value={inputTime}
                 onChangeText={setInputTime}
                 placeholder={t('time_placeholder')}
-                placeholderTextColor="#444"
+                placeholderTextColor={colors.textFaint}
               />
               <TouchableOpacity style={s.dateSaveBtn} onPress={handleSaveDate}>
                 <Text style={s.dateSaveBtnText}>{t('date_confirm')}</Text>
@@ -181,7 +184,7 @@ function ConfirmItem({
                 style={[s.mbLinkBtn, isLinked && s.mbLinkBtnActive]}
                 onPress={() => onLinkMbCost(isLinked ? null : costItem.id)}
               >
-                <Text style={[s.mbLinkBtnText, isLinked && { color: '#00ff88' }]}>
+                <Text style={[s.mbLinkBtnText, isLinked && { color: colors.income }]}>
                   {isLinked ? '✅ ' : '○ '}
                   {t('mb_link_btn', ci + 1, costItem.analyzeResult.gst_amount.toFixed(2))}
                 </Text>
@@ -253,12 +256,12 @@ function ConfirmItem({
             <TouchableOpacity
               key={c}
               style={[s.chainBtn,
-                { backgroundColor: isActive ? CHAIN_COLORS[c] : '#111',
-                  borderColor: isActive ? CHAIN_COLORS[c] : '#333' }
+                { backgroundColor: isActive ? chainColors[c] : colors.bgInput,
+                  borderColor: isActive ? chainColors[c] : colors.borderLight }
               ]}
               onPress={() => onChain(c)}
             >
-              <Text style={[s.chainBtnText, { color: isActive ? CHAIN_TEXT[c] : '#555' }]}>
+              <Text style={[s.chainBtnText, { color: isActive ? CHAIN_TEXT[c] : colors.textHint }]}>
                 {c}
               </Text>
             </TouchableOpacity>
@@ -299,6 +302,8 @@ function ConfirmItem({
 
 function ManualCategoryPicker({ selectedGroup, selectedCategory, onGroup, onCategory }) {
   const { t } = useI18n();
+  const { colors, chainColors } = useTheme();   // ★ テーマ対応
+  const s = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={s.manualBox}>
       <Text style={s.manualTitle}>{t('manual_cat_title')}</Text>
@@ -309,12 +314,12 @@ function ManualCategoryPicker({ selectedGroup, selectedCategory, onGroup, onCate
           <TouchableOpacity
             key={g}
             style={[s.manualGroupBtn,
-              selectedGroup === g && { backgroundColor: '#003322', borderColor: '#00ff88' }
+              selectedGroup === g && { backgroundColor: colors.accentBgSolid, borderColor: colors.income }
             ]}
             onPress={() => onGroup(g)}
           >
             <Text style={[s.manualGroupText,
-              selectedGroup === g && { color: '#00ff88' }
+              selectedGroup === g && { color: colors.income }
             ]}>{t('group_' + g)}</Text>
           </TouchableOpacity>
         ))}
@@ -327,12 +332,12 @@ function ManualCategoryPicker({ selectedGroup, selectedCategory, onGroup, onCate
             <TouchableOpacity
               key={cat}
               style={[s.manualCatBtn,
-                selectedCategory === cat && { backgroundColor: '#003322', borderColor: '#00ff88' }
+                selectedCategory === cat && { backgroundColor: colors.accentBgSolid, borderColor: colors.income }
               ]}
               onPress={() => onCategory(cat)}
             >
               <Text style={[s.manualCatText,
-                selectedCategory === cat && { color: '#00ff88' }
+                selectedCategory === cat && { color: colors.income }
               ]}>{t('cat_' + cat)}</Text>
             </TouchableOpacity>
           ))}
@@ -357,6 +362,8 @@ const SCROLL_RARITIES = ['Common', 'Uncommon', 'Rare', 'Epic', 'Legendary'];
 
 function MbSlotEditor({ item, onMbItemsOk }) {
   const { t } = useI18n();
+  const { colors, chainColors } = useTheme();   // ★ テーマ対応
+  const s = useMemo(() => makeStyles(colors), [colors]);
   const autoItems = item.analyzeResult?.extra?.mb_reward_items ?? [];
 
   // ジェムだけLvを左から順に自動割り当て（Lv選択UI不要）
@@ -385,16 +392,17 @@ function MbSlotEditor({ item, onMbItemsOk }) {
   const [slots, setSlots] = React.useState(initialSlots);
 
   const updateColor = (i, color) => {
-    setSlots((prev) => prev.map((s, idx) => idx === i ? { ...s, gem_color: color } : s));
+    setSlots((prev) => prev.map((slot, idx) => idx === i ? { ...slot, gem_color: color } : slot));
   };
   const updateRarity = (i, rarity) => {
-    setSlots((prev) => prev.map((s, idx) => idx === i ? { ...s, scroll_rarity: rarity } : s));
+    setSlots((prev) => prev.map((slot, idx) => idx === i ? { ...slot, scroll_rarity: rarity } : slot));
   };
 
   // 全スロットが確定済みかチェック
-  const allConfirmed = slots.every((s) => {
-    if (s.item_type === 'scroll') return s.scroll_rarity !== null;
-    return s.gem_color !== null;  // Lvは自動なので色だけチェック
+  // ※ 引数名に s は使わないこと。スタイルの s を隠してしまう
+  const allConfirmed = slots.every((slot) => {
+    if (slot.item_type === 'scroll') return slot.scroll_rarity !== null;
+    return slot.gem_color !== null;  // Lvは自動なので色だけチェック
   });
 
   return (
@@ -402,10 +410,10 @@ function MbSlotEditor({ item, onMbItemsOk }) {
       <Text style={s.specialTitle}>{t('mb_slot_title')}</Text>
 
       {slots.map((slot, i) => (
-        <View key={i} style={{ marginBottom: 12, borderTopWidth: 1, borderTopColor: '#2a2a2a', paddingTop: 10 }}>
+        <View key={i} style={{ marginBottom: 12, borderTopWidth: 1, borderTopColor: colors.border, paddingTop: 10 }}>
 
           {/* ヘッダー：Lv〇 × 個数 or ミンスク × 個数 */}
-          <Text style={{ color: '#aaa', fontSize: 13, fontWeight: 'bold', marginBottom: 6 }}>
+          <Text style={{ color: colors.textSecondary, fontSize: 13, fontWeight: 'bold', marginBottom: 6 }}>
             {slot.item_type === 'scroll'
               ? t('slot_scroll', slot.quantity)
               : t('slot_gem', slot.gem_level, slot.quantity)}
@@ -414,7 +422,7 @@ function MbSlotEditor({ item, onMbItemsOk }) {
           {slot.item_type === 'scroll' ? (
             /* ── ミンスクのレアリティ選択 ── */
             <View>
-              <Text style={{ color: '#888', fontSize: 11, marginBottom: 4 }}>{t('rarity_label')}</Text>
+              <Text style={{ color: colors.textMuted, fontSize: 11, marginBottom: 4 }}>{t('rarity_label')}</Text>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
                 {SCROLL_RARITIES.map((r) => {
                   const isActive = slot.scroll_rarity === r;
@@ -424,12 +432,12 @@ function MbSlotEditor({ item, onMbItemsOk }) {
                       style={{
                         paddingHorizontal: 10, paddingVertical: 5,
                         borderRadius: 8, borderWidth: 1,
-                        backgroundColor: isActive ? '#1a3a2a' : '#111',
-                        borderColor: isActive ? '#00ff88' : '#333',
+                        backgroundColor: isActive ? colors.accentSurfaceOn : colors.bgInput,
+                        borderColor: isActive ? colors.income : colors.borderLight,
                       }}
                       onPress={() => updateRarity(i, r)}
                     >
-                      <Text style={{ color: isActive ? '#00ff88' : '#666', fontSize: 12 }}>{r}</Text>
+                      <Text style={{ color: isActive ? colors.income : colors.textDim, fontSize: 12 }}>{r}</Text>
                     </TouchableOpacity>
                   );
                 })}
@@ -438,7 +446,7 @@ function MbSlotEditor({ item, onMbItemsOk }) {
           ) : (
             /* ── ジェムの色選択のみ（Lv選択は不要） ── */
             <View>
-              <Text style={{ color: '#888', fontSize: 11, marginBottom: 4 }}>{t('color_label')}</Text>
+              <Text style={{ color: colors.textMuted, fontSize: 11, marginBottom: 4 }}>{t('color_label')}</Text>
               <View style={{ flexDirection: 'row', gap: 6 }}>
                 {GEM_COLOR_OPTIONS.map(({ key, emoji, tkey }) => {
                   const isActive = slot.gem_color === key;
@@ -448,13 +456,13 @@ function MbSlotEditor({ item, onMbItemsOk }) {
                       style={{
                         flex: 1, paddingVertical: 8, borderRadius: 8,
                         borderWidth: 1, alignItems: 'center',
-                        backgroundColor: isActive ? '#1a3a2a' : '#111',
-                        borderColor: isActive ? '#00ff88' : '#333',
+                        backgroundColor: isActive ? colors.accentSurfaceOn : colors.bgInput,
+                        borderColor: isActive ? colors.income : colors.borderLight,
                       }}
                       onPress={() => updateColor(i, key)}
                     >
                       <Text style={{ fontSize: 16 }}>{emoji}</Text>
-                      <Text style={{ color: isActive ? '#00ff88' : '#555', fontSize: 10, marginTop: 2 }}>{t(tkey)}</Text>
+                      <Text style={{ color: isActive ? colors.income : colors.textHint, fontSize: 10, marginTop: 2 }}>{t(tkey)}</Text>
                     </TouchableOpacity>
                   );
                 })}
@@ -466,14 +474,14 @@ function MbSlotEditor({ item, onMbItemsOk }) {
 
       {/* 確定ボタン */}
       <TouchableOpacity
-        style={[s.specialBtn, { borderColor: allConfirmed ? '#00ff88' : '#444', marginTop: 8 }]}
+        style={[s.specialBtn, { borderColor: allConfirmed ? colors.income : colors.textFaint, marginTop: 8 }]}
         onPress={() => {
           if (!allConfirmed) return;
           onMbItemsOk(slots);
         }}
         disabled={!allConfirmed}
       >
-        <Text style={[s.specialBtnText, { color: allConfirmed ? '#00ff88' : '#444' }]}>
+        <Text style={[s.specialBtnText, { color: allConfirmed ? colors.income : colors.textFaint }]}>
           {allConfirmed ? t('slot_confirm') : t('slot_confirm_wait')}
         </Text>
       </TouchableOpacity>
@@ -490,6 +498,8 @@ function SpecialFlow({
   onMbItemsOk, onKeptGemColor,
 }) {
   const { t } = useI18n();
+  const { colors, chainColors } = useTheme();   // ★ テーマ対応
+  const s = useMemo(() => makeStyles(colors), [colors]);
   const r = item.analyzeResult;
   const cat = r.category;
 
@@ -500,16 +510,16 @@ function SpecialFlow({
         <Text style={s.specialTitle}>{t('gem_result_q')}</Text>
         <View style={s.specialRow}>
           <TouchableOpacity
-            style={[s.specialBtn, { borderColor: '#00ff88' }]}
+            style={[s.specialBtn, { borderColor: colors.income }]}
             onPress={() => onGemUpgradeResult('success')}
           >
-            <Text style={[s.specialBtnText, { color: '#00ff88' }]}>{t('result_success')}</Text>
+            <Text style={[s.specialBtnText, { color: colors.income }]}>{t('result_success')}</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[s.specialBtn, { borderColor: '#ff4444' }]}
+            style={[s.specialBtn, { borderColor: colors.expense }]}
             onPress={() => onGemUpgradeResult('fail')}
           >
-            <Text style={[s.specialBtnText, { color: '#ff4444' }]}>{t('result_fail')}</Text>
+            <Text style={[s.specialBtnText, { color: colors.expense }]}>{t('result_fail')}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -526,7 +536,7 @@ function SpecialFlow({
             <TouchableOpacity
               key={lv}
               style={[s.mbBtn,
-                item.mbLevel === parseInt(lv) && { backgroundColor: '#003322', borderColor: '#00ff88' }
+                item.mbLevel === parseInt(lv) && { backgroundColor: colors.accentBgSolid, borderColor: colors.income }
               ]}
               onPress={() => onMbLevel(parseInt(lv))}
             >
@@ -554,9 +564,9 @@ function SpecialFlow({
         <Text style={s.specialTitle}>{t('enhance_q')}</Text>
         <View style={s.specialCol}>
           {[
-            { key: 'normal',    tkey: 'enhance_normal',  color: '#00ff88' },
-            { key: 'double_up', tkey: 'enhance_double',  color: '#ffaa00' },
-            { key: 'rainbow',   tkey: 'enhance_rainbow', color: '#ff88ff' },
+            { key: 'normal',    tkey: 'enhance_normal',  color: colors.income },
+            { key: 'double_up', tkey: 'enhance_double',  color: colors.warning },
+            { key: 'rainbow',   tkey: 'enhance_rainbow', color: colors.rainbow },
           ].map(({ key, tkey, color }) => (
             <TouchableOpacity
               key={key}
@@ -583,8 +593,8 @@ function SpecialFlow({
           {Object.entries(GEM_COLORS).map(([key, val]) => (
             <TouchableOpacity
               key={key}
-              style={[s.specialBtn, { borderColor: '#555' },
-                item.keptGemColor === key && { borderColor: '#00ff88' }
+              style={[s.specialBtn, { borderColor: colors.textHint },
+                item.keptGemColor === key && { borderColor: colors.income }
               ]}
               onPress={() => onKeptGemColor(key)}
             >
@@ -667,6 +677,8 @@ function SpecialFlowDone({ item }) {
 
 function DonePhase({ savedCount, pendingCount, onBack }) {
   const { t } = useI18n();
+  const { colors, chainColors } = useTheme();   // ★ テーマ対応
+  const s = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={s.centerBox}>
       <Text style={s.phaseEmoji}>🎉</Text>
@@ -674,7 +686,7 @@ function DonePhase({ savedCount, pendingCount, onBack }) {
       <View style={s.doneStats}>
         <Text style={s.doneStatText}>{t('done_saved', savedCount)}</Text>
         {pendingCount > 0 && (
-          <Text style={[s.doneStatText, { color: '#ffaa00' }]}>
+          <Text style={[s.doneStatText, { color: colors.warning }]}>
             {t('done_pending', pendingCount)}
           </Text>
         )}

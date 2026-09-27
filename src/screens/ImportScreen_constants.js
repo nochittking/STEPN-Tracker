@@ -3,11 +3,6 @@
  * ImportScreen 用の定数・ユーティリティ
  */
 
-export const CHAIN_COLORS = {
-  SOL: '#9FFB50',
-  BNB: '#F3BA2F',
-  POL: '#9063CD',
-};
 export const CHAIN_TEXT = { SOL: '#000', BNB: '#000', POL: '#fff' };
 
 export const CATEGORY_LABELS = {
@@ -67,9 +62,10 @@ export const GEM_COLORS = {
 
 // 信頼度スコア → { key, color }。
 //   key は i18n の翻訳キー。表示は呼び出し側で t(key) する。
-export function confLabel(score) {
-  if (score >= 0.9) return { key: 'conf_high', color: '#00ff88' };
-  if (score >= 0.6) return { key: 'conf_mid',  color: '#ffaa00' };
-  if (score >  0)   return { key: 'conf_low',  color: '#ff4444' };
-  return               { key: 'conf_none',     color: '#555' };
+// ※ 色はテーマで変わるため、呼び出し側から colors を渡すこと
+export function confLabel(score, c) {
+  if (score >= 0.9) return { key: 'conf_high', color: c.confHigh };
+  if (score >= 0.6) return { key: 'conf_mid',  color: c.confMid  };
+  if (score >  0)   return { key: 'conf_low',  color: c.confLow  };
+  return               { key: 'conf_none',     color: c.confUnknown };
 }

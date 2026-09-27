@@ -76,6 +76,7 @@ export const DARK = {
   bgSubtle:      '#222222',
   overlay:       'rgba(0,0,0,0.85)',
   overlaySoft:   'rgba(0,0,0,0.7)',    // モーダルの背面（CSV出力）
+  overlayStrong: 'rgba(0,0,0,0.92)',   // 画像拡大モーダルの背面
 
   // ボーダー
   border:        '#2a2a2a',
@@ -120,6 +121,13 @@ export const DARK = {
   accentSurfaceOn: '#1a3a2a',   // 選択中の期間タブの地
   infoSurface:     '#1a1a2a',   // CSV出力ボタンの地
   infoAlt:         '#44aaff',   // カテゴリ選択など info とは別系統の青
+  infoBorder:      '#1a4a6a',   // MB紐付けボックスの枠
+  suggestionSurface:'#002244',  // チェーン提案バナーの地
+  warningSurface:  '#1a1500',   // 警告ボックスの地
+  specialSurface:  '#0d1a0d',   // 特殊フローの地
+  specialBorder:   '#1a4a1a',   // 特殊フローの枠
+  warnAlt:         '#ff8844',   // 保存バーの注意文言
+  rainbow:         '#ff88ff',   // レインボー強化
   infoAltBg:       '#44aaff22',
 
   // 状態を示す地（RecordListScreen）
@@ -172,6 +180,7 @@ export const LIGHT = {
   bgSubtle:      '#b6bcc6',
   overlay:       'rgba(0,0,0,0.55)',
   overlaySoft:   'rgba(0,0,0,0.45)',   // モーダルの背面（CSV出力）
+  overlayStrong: 'rgba(0,0,0,0.8)',    // 画像拡大モーダルの背面
 
   // ボーダー
   border:        '#a8afbb',
@@ -214,6 +223,13 @@ export const LIGHT = {
   accentSurfaceOn: '#b6dbc5',   // 選択中の期間タブの地
   infoSurface:     '#cfdef3',   // CSV出力ボタンの地
   infoAlt:         '#0d5698',   // カテゴリ選択など info とは別系統の青
+  infoBorder:      '#8fb0d4',   // MB紐付けボックスの枠
+  suggestionSurface:'#ccdcf0',  // チェーン提案バナーの地
+  warningSurface:  '#ece0c4',   // 警告ボックスの地
+  specialSurface:  '#cde0cd',   // 特殊フローの地
+  specialBorder:   '#8fb88f',   // 特殊フローの枠
+  warnAlt:         '#7c3510',   // 保存バーの注意文言
+  rainbow:         '#9c1a9c',   // レインボー強化
   infoAltBg:       '#0d569826',
 
   // 状態を示す地（RecordListScreen）
