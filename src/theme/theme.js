@@ -86,6 +86,7 @@ export const DARK = {
   textMuted:     '#888888',
   textHint:      '#555555',
   textFaint:     '#444444',
+  textMid:       '#777777',   // textMuted と textHint の中間
   textFaintest:  '#333333',   // フッター等、最も控えめな装飾文字
 
   // 意味を持つ色
@@ -112,6 +113,11 @@ export const DARK = {
   accentSurface:   '#1a2a1a',   // 取込ボタンの地
   accentSurfaceOn: '#1a3a2a',   // 選択中の期間タブの地
   infoSurface:     '#1a1a2a',   // CSV出力ボタンの地
+
+  // 状態を示す地（RecordListScreen）
+  selectedSurface: '#001a0d',   // 選択中のレコードカード
+  dangerSurface:   '#1a0000',   // 削除ボタンなど危険操作の地
+  pendingSurface:  '#1a1200',   // 仮保存カードの地
 
   // チェーン名の縁取り
   //   ダークは背景が暗くブランド色がそのまま読めるため、縁取りは付けない
@@ -167,6 +173,7 @@ export const LIGHT = {
   textMuted:     '#474b52',   //  6.01:1
   textHint:      '#585c63',   //  4.61:1
   textFaint:     '#767b84',   // 区切り線・バッジ等の装飾用（本文には使わない）
+  textMid:       '#4f545c',   // textMuted と textHint の中間
   textFaintest:  '#8b9098',   // フッター等、最も控えめな装飾文字
 
   // 意味を持つ色（すべてカード上で 4.5:1 以上）
@@ -193,6 +200,11 @@ export const LIGHT = {
   accentSurface:   '#c7e3d3',   // 取込ボタンの地
   accentSurfaceOn: '#b6dbc5',   // 選択中の期間タブの地
   infoSurface:     '#cfdef3',   // CSV出力ボタンの地
+
+  // 状態を示す地（RecordListScreen）
+  selectedSurface: '#c2e2d0',   // 選択中のレコードカード
+  dangerSurface:   '#eed3d1',   // 削除ボタンなど危険操作の地
+  pendingSurface:  '#ebdfc2',   // 仮保存カードの地
 
   // チェーン名の縁取り
   //   明るい背景の上で鮮やかな文字を浮かせるための縁。

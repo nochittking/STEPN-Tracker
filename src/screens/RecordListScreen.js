@@ -6,7 +6,7 @@
  * 機能：チェーンフィルタ / ソート / 複数選択削除 / 仮保存の正式保存
  */
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, SafeAreaView,
   StatusBar, FlatList, Alert, ActivityIndicator,
@@ -14,16 +14,12 @@ import {
 import { useFocusEffect } from '@react-navigation/native';
 import { StorageService } from '../services/StorageService';
 import { useI18n } from '../i18n/i18n';   // ★ 多言語対応
+import { useTheme } from '../theme/theme';   // ★ テーマ対応
 
 // ─────────────────────────────────────────
 // 定数
 // ─────────────────────────────────────────
 
-const CHAIN_COLORS = {
-  SOL: '#9FFB50',
-  BNB: '#F3BA2F',
-  POL: '#9063CD',
-};
 const CHAIN_TEXT = { SOL: '#000', BNB: '#000', POL: '#fff' };
 
 const TAB_KEYS = ['all', 'income', 'expense', 'info', 'listing', 'pending', 'history'];
@@ -34,6 +30,8 @@ const TAB_KEYS = ['all', 'income', 'expense', 'info', 'listing', 'pending', 'his
 
 export default function RecordListScreen({ navigation, route }) {
   const { t, lang } = useI18n();   // ★ 多言語対応
+  const { colors, theme, chainColors } = useTheme();   // ★ テーマ対応
+  const s = useMemo(() => makeStyles(colors), [colors]);
   const initTab = route.params?.tab ?? 'all';
   const initChain = route.params?.chain ?? 'ALL';
 
@@ -195,7 +193,7 @@ export default function RecordListScreen({ navigation, route }) {
 
   return (
     <SafeAreaView style={s.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#0a0a0a" />
+      <StatusBar barStyle={theme === 'dark' ? 'light-content' : 'dark-content'} backgroundColor={colors.bg} />
 
       {/* タブ */}
       <View style={s.tabBar}>
@@ -243,8 +241,8 @@ export default function RecordListScreen({ navigation, route }) {
                     style={[
                       s.filterBtn,
                       chainFilter === c && {
-                        backgroundColor: c === 'ALL' ? '#00ff88' : CHAIN_COLORS[c],
-                        borderColor: c === 'ALL' ? '#00ff88' : CHAIN_COLORS[c],
+                        backgroundColor: c === 'ALL' ? colors.income : chainColors[c],
+                        borderColor: c === 'ALL' ? colors.income : chainColors[c],
                       },
                     ]}
                     onPress={() => setChainFilter(c)}
@@ -252,7 +250,7 @@ export default function RecordListScreen({ navigation, route }) {
                     <Text style={[
                       s.filterBtnText,
                       chainFilter === c && {
-                        color: c === 'ALL' ? '#000' : CHAIN_TEXT[c],
+                        color: c === 'ALL' ? colors.onPrimary : CHAIN_TEXT[c],
                       },
                     ]}>{c}</Text>
                   </TouchableOpacity>
@@ -286,7 +284,7 @@ export default function RecordListScreen({ navigation, route }) {
                   setSelected(new Set());
                 }}
               >
-                <Text style={[s.selectBtnText, selectMode && { color: '#000' }]}>
+                <Text style={[s.selectBtnText, selectMode && { color: colors.onPrimary }]}>
                   {selectMode ? t('select_cancel_btn') : t('select_mode_btn')}
                 </Text>
               </TouchableOpacity>
@@ -303,7 +301,7 @@ export default function RecordListScreen({ navigation, route }) {
                 style={[s.multiBtn, s.multiBtnDanger]}
                 onPress={handleDeleteSelected}
               >
-                <Text style={[s.multiBtnText, { color: '#ff4444' }]}>
+                <Text style={[s.multiBtnText, { color: colors.expense }]}>
                   {t('delete_selected_btn', selected.size)}
                 </Text>
               </TouchableOpacity>
@@ -313,7 +311,7 @@ export default function RecordListScreen({ navigation, route }) {
           {/* リスト */}
           {loading ? (
             <View style={s.loadingBox}>
-              <ActivityIndicator size="large" color="#00ff88" />
+              <ActivityIndicator size="large" color={colors.income} />
               <Text style={s.loadingText}>{t('loading_text')}</Text>
             </View>
           ) : currentData.length === 0 ? (
@@ -367,11 +365,13 @@ export default function RecordListScreen({ navigation, route }) {
 
 function RecordCard({ item, selectMode, isSelected, onPress }) {
   const { t } = useI18n();
+  const { colors, chainColors } = useTheme();   // ★ テーマ対応
+  const s = useMemo(() => makeStyles(colors), [colors]);
   const label = item.category ? t('cat_' + item.category) : t('cat_unknown');
-  const chainColor = CHAIN_COLORS[item.chain] ?? '#333';
-  const chainText  = CHAIN_TEXT[item.chain]   ?? '#fff';
+  const chainColor = chainColors[item.chain] ?? colors.borderLight;
+  const chainText  = CHAIN_TEXT[item.chain]   ?? colors.textPrimary;
   const isIncome   = item.type === 'income';
-  const amountColor = isIncome ? '#00ff88' : '#ff4444';
+  const amountColor = isIncome ? colors.income : colors.expense;
   const sign        = isIncome ? '+' : '-';
 
   const dateStr = item.timestamp
@@ -420,7 +420,7 @@ function RecordCard({ item, selectMode, isSelected, onPress }) {
             </Text>
           )}
           {item.extra?.jpy_amount > 0 && (
-            <Text style={[s.recordAmount, { color: '#ffaa00' }]}>
+            <Text style={[s.recordAmount, { color: colors.warning }]}>
               ¥{item.extra.jpy_amount.toLocaleString()}
             </Text>
           )}
@@ -457,9 +457,11 @@ function RecordCard({ item, selectMode, isSelected, onPress }) {
 
 function PendingCard({ item, selectedChain, onChainSelect, onConfirm, onDelete }) {
   const { t } = useI18n();
+  const { colors, chainColors } = useTheme();   // ★ テーマ対応
+  const s = useMemo(() => makeStyles(colors), [colors]);
   const label = item.category ? t('cat_' + item.category) : t('cat_unknown');
   const isIncome = item.type === 'income';
-  const amountColor = isIncome ? '#00ff88' : '#ff4444';
+  const amountColor = isIncome ? colors.income : colors.expense;
   const sign = isIncome ? '+' : '-';
 
   return (
@@ -488,13 +490,13 @@ function PendingCard({ item, selectedChain, onChainSelect, onConfirm, onDelete }
             <TouchableOpacity
               key={c}
               style={[s.pendingChainBtn,
-                { backgroundColor: isActive ? CHAIN_COLORS[c] : '#111',
-                  borderColor: isActive ? CHAIN_COLORS[c] : '#333' }
+                { backgroundColor: isActive ? chainColors[c] : colors.bgInput,
+                  borderColor: isActive ? chainColors[c] : colors.borderLight }
               ]}
               onPress={() => onChainSelect(c)}
             >
               <Text style={[s.pendingChainBtnText,
-                { color: isActive ? CHAIN_TEXT[c] : '#555' }
+                { color: isActive ? CHAIN_TEXT[c] : colors.textHint }
               ]}>{c}</Text>
             </TouchableOpacity>
           );
@@ -505,13 +507,13 @@ function PendingCard({ item, selectedChain, onChainSelect, onConfirm, onDelete }
       <View style={s.pendingBtns}>
         <TouchableOpacity
           style={[s.pendingConfirmBtn,
-            !selectedChain && { backgroundColor: '#1a4a33', borderColor: '#1a4a33' }
+            !selectedChain && { backgroundColor: colors.btnDisabled, borderColor: colors.btnDisabled }
           ]}
           onPress={onConfirm}
           disabled={!selectedChain}
         >
           <Text style={[s.pendingConfirmText,
-            !selectedChain && { color: '#555' }
+            !selectedChain && { color: colors.textHint }
           ]}>{t('confirm_pending_btn')}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={s.pendingDeleteBtn} onPress={onDelete}>
@@ -526,81 +528,81 @@ function PendingCard({ item, selectedChain, onChainSelect, onConfirm, onDelete }
 // Styles
 // ─────────────────────────────────────────
 
-const s = StyleSheet.create({
-  container:    { flex: 1, backgroundColor: '#0a0a0a' },
+const makeStyles = (c) => StyleSheet.create({
+  container:    { flex: 1, backgroundColor: c.bg },
 
   // タブ
-  tabBar:       { borderBottomWidth: 1, borderBottomColor: '#222' },
+  tabBar:       { borderBottomWidth: 1, borderBottomColor: c.bgSubtle },
   tabList:      { paddingHorizontal: 12, paddingVertical: 8, gap: 6 },
-  tab:          { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, backgroundColor: '#111', borderWidth: 1, borderColor: '#333' },
-  tabActive:    { backgroundColor: '#00ff88', borderColor: '#00ff88' },
-  tabText:      { color: '#555', fontSize: 12, fontWeight: 'bold' },
-  tabTextActive:{ color: '#000' },
+  tab:          { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, backgroundColor: c.bgInput, borderWidth: 1, borderColor: c.borderLight },
+  tabActive:    { backgroundColor: c.income, borderColor: c.income },
+  tabText:      { color: c.textHint, fontSize: 12, fontWeight: 'bold' },
+  tabTextActive:{ color: c.onPrimary },
 
   // フィルタバー
-  filterBar:    { paddingHorizontal: 12, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#1a1a1a' },
+  filterBar:    { paddingHorizontal: 12, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: c.bgCard },
   filterRow:    { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 6 },
-  filterBtn:    { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, backgroundColor: '#111', borderWidth: 1, borderColor: '#333' },
-  filterBtnText:{ color: '#555', fontSize: 12, fontWeight: 'bold' },
-  sortBtn:      { marginLeft: 'auto', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, backgroundColor: '#111', borderWidth: 1, borderColor: '#333' },
-  sortBtnText:  { color: '#aaa', fontSize: 11 },
+  filterBtn:    { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, backgroundColor: c.bgInput, borderWidth: 1, borderColor: c.borderLight },
+  filterBtnText:{ color: c.textHint, fontSize: 12, fontWeight: 'bold' },
+  sortBtn:      { marginLeft: 'auto', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, backgroundColor: c.bgInput, borderWidth: 1, borderColor: c.borderLight },
+  sortBtnText:  { color: c.textSecondary, fontSize: 11 },
 
   // 操作バー
-  actionBar:    { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 12, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#1a1a1a' },
-  countText:    { color: '#555', fontSize: 12 },
-  selectBtn:    { paddingHorizontal: 12, paddingVertical: 5, borderRadius: 8, backgroundColor: '#111', borderWidth: 1, borderColor: '#333' },
-  selectBtnActive: { backgroundColor: '#00ff88', borderColor: '#00ff88' },
-  selectBtnText:{ color: '#aaa', fontSize: 12, fontWeight: 'bold' },
+  actionBar:    { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 12, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: c.bgCard },
+  countText:    { color: c.textHint, fontSize: 12 },
+  selectBtn:    { paddingHorizontal: 12, paddingVertical: 5, borderRadius: 8, backgroundColor: c.bgInput, borderWidth: 1, borderColor: c.borderLight },
+  selectBtnActive: { backgroundColor: c.income, borderColor: c.income },
+  selectBtnText:{ color: c.textSecondary, fontSize: 12, fontWeight: 'bold' },
 
   // 複数選択バー
-  multiBar:     { flexDirection: 'row', padding: 10, gap: 8, borderBottomWidth: 1, borderBottomColor: '#1a1a1a' },
-  multiBtn:     { flex: 1, paddingVertical: 8, borderRadius: 8, backgroundColor: '#1a1a1a', alignItems: 'center', borderWidth: 1, borderColor: '#333' },
-  multiBtnDanger: { borderColor: '#ff4444', backgroundColor: '#1a0000' },
-  multiBtnText: { color: '#aaa', fontSize: 13, fontWeight: 'bold' },
+  multiBar:     { flexDirection: 'row', padding: 10, gap: 8, borderBottomWidth: 1, borderBottomColor: c.bgCard },
+  multiBtn:     { flex: 1, paddingVertical: 8, borderRadius: 8, backgroundColor: c.bgCard, alignItems: 'center', borderWidth: 1, borderColor: c.borderLight },
+  multiBtnDanger: { borderColor: c.expense, backgroundColor: c.dangerSurface },
+  multiBtnText: { color: c.textSecondary, fontSize: 13, fontWeight: 'bold' },
 
   // リスト
   listContent:  { padding: 12, paddingBottom: 40 },
   loadingBox:   { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 12 },
-  loadingText:  { color: '#555', fontSize: 14 },
+  loadingText:  { color: c.textHint, fontSize: 14 },
   emptyBox:     { flex: 1, justifyContent: 'center', alignItems: 'center', paddingTop: 80 },
   emptyEmoji:   { fontSize: 48, marginBottom: 12 },
-  emptyText:    { color: '#555', fontSize: 15 },
+  emptyText:    { color: c.textHint, fontSize: 15 },
 
   // レコードカード
-  recordCard:   { flexDirection: 'row', alignItems: 'center', backgroundColor: '#1a1a1a', borderRadius: 12, padding: 12, marginBottom: 8, borderWidth: 1, borderColor: '#2a2a2a' },
-  recordCardSelected: { borderColor: '#00ff88', backgroundColor: '#001a0d' },
+  recordCard:   { flexDirection: 'row', alignItems: 'center', backgroundColor: c.bgCard, borderRadius: 12, padding: 12, marginBottom: 8, borderWidth: 1, borderColor: c.border },
+  recordCardSelected: { borderColor: c.income, backgroundColor: c.selectedSurface },
   recordContent:{ flex: 1 },
   recordHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 },
-  recordCategory: { color: '#fff', fontSize: 13, fontWeight: 'bold', flex: 1 },
+  recordCategory: { color: c.textPrimary, fontSize: 13, fontWeight: 'bold', flex: 1 },
   chainBadge:   { borderRadius: 5, paddingHorizontal: 7, paddingVertical: 2, marginLeft: 6 },
   chainBadgeText: { fontSize: 10, fontWeight: 'bold' },
   recordAmountRow: { flexDirection: 'row', gap: 10, marginBottom: 4, flexWrap: 'wrap' },
   recordAmount: { fontSize: 14, fontWeight: 'bold' },
-  recordDate:   { color: '#555', fontSize: 11, marginBottom: 2 },
-  recordSub:    { color: '#777', fontSize: 11 },
-  recordMemo:   { color: '#555', fontSize: 11, fontStyle: 'italic' },
-  recordArrow:  { color: '#555', fontSize: 20, marginLeft: 8 },
+  recordDate:   { color: c.textHint, fontSize: 11, marginBottom: 2 },
+  recordSub:    { color: c.textMid, fontSize: 11 },
+  recordMemo:   { color: c.textHint, fontSize: 11, fontStyle: 'italic' },
+  recordArrow:  { color: c.textHint, fontSize: 20, marginLeft: 8 },
 
   // チェックボックス
-  checkbox:     { width: 22, height: 22, borderRadius: 11, borderWidth: 1.5, borderColor: '#555', marginRight: 10, justifyContent: 'center', alignItems: 'center' },
-  checkboxChecked: { backgroundColor: '#00ff88', borderColor: '#00ff88' },
-  checkboxMark: { color: '#000', fontSize: 13, fontWeight: 'bold' },
+  checkbox:     { width: 22, height: 22, borderRadius: 11, borderWidth: 1.5, borderColor: c.textHint, marginRight: 10, justifyContent: 'center', alignItems: 'center' },
+  checkboxChecked: { backgroundColor: c.income, borderColor: c.income },
+  checkboxMark: { color: c.onPrimary, fontSize: 13, fontWeight: 'bold' },
 
   // 仮保存カード
-  pendingCard:  { backgroundColor: '#1a1200', borderRadius: 12, padding: 14, marginBottom: 8, borderWidth: 1, borderColor: '#ff8800' },
-  pendingCategory: { color: '#fff', fontSize: 13, fontWeight: 'bold', marginBottom: 6 },
-  pendingChainLabel: { color: '#aaa', fontSize: 12, marginTop: 10, marginBottom: 6 },
+  pendingCard:  { backgroundColor: c.pendingSurface, borderRadius: 12, padding: 14, marginBottom: 8, borderWidth: 1, borderColor: c.pending },
+  pendingCategory: { color: c.textPrimary, fontSize: 13, fontWeight: 'bold', marginBottom: 6 },
+  pendingChainLabel: { color: c.textSecondary, fontSize: 12, marginTop: 10, marginBottom: 6 },
   pendingChainRow: { flexDirection: 'row', gap: 8, marginBottom: 12 },
   pendingChainBtn: { flex: 1, paddingVertical: 8, borderRadius: 8, borderWidth: 1.5, alignItems: 'center' },
   pendingChainBtnText: { fontWeight: 'bold', fontSize: 13 },
   pendingBtns:  { flexDirection: 'row', gap: 8 },
-  pendingConfirmBtn: { flex: 2, backgroundColor: '#003322', borderRadius: 8, paddingVertical: 10, alignItems: 'center', borderWidth: 1, borderColor: '#00ff88' },
-  pendingConfirmText: { color: '#00ff88', fontWeight: 'bold', fontSize: 13 },
-  pendingDeleteBtn: { flex: 1, backgroundColor: '#1a0000', borderRadius: 8, paddingVertical: 10, alignItems: 'center', borderWidth: 1, borderColor: '#ff4444' },
-  pendingDeleteText: { color: '#ff4444', fontWeight: 'bold', fontSize: 13 },
+  pendingConfirmBtn: { flex: 2, backgroundColor: c.accentBgSolid, borderRadius: 8, paddingVertical: 10, alignItems: 'center', borderWidth: 1, borderColor: c.income },
+  pendingConfirmText: { color: c.income, fontWeight: 'bold', fontSize: 13 },
+  pendingDeleteBtn: { flex: 1, backgroundColor: c.dangerSurface, borderRadius: 8, paddingVertical: 10, alignItems: 'center', borderWidth: 1, borderColor: c.expense },
+  pendingDeleteText: { color: c.expense, fontWeight: 'bold', fontSize: 13 },
 
   // プレースホルダー
   placeholderBox:  { flex: 1, justifyContent: 'center', alignItems: 'center' },
   placeholderEmoji:{ fontSize: 48, marginBottom: 12 },
-  placeholderText: { color: '#555', fontSize: 15 },
+  placeholderText: { color: c.textHint, fontSize: 15 },
 });
