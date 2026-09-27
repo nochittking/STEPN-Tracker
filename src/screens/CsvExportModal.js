@@ -19,7 +19,7 @@
  *   npx expo install expo-file-system expo-sharing
  */
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View, Text, Modal, TouchableOpacity,
   StyleSheet, Alert, ActivityIndicator,
@@ -28,6 +28,7 @@ import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing   from 'expo-sharing';
 import { StorageService } from '../services/StorageService';
 import { useI18n } from '../i18n/i18n';   // ★ 多言語対応
+import { useTheme } from '../theme/theme';   // ★ テーマ対応
 
 // ─────────────────────────────────────────
 // 定数
@@ -87,11 +88,12 @@ const getPeriodRange = (periodKey, customYear, customMonthNum) => {
 // CSVセルエスケープ
 // ─────────────────────────────────────────
 
+// ※ 変数名に s は使わないこと。画面側でスタイルに s を使っているため紛らわしい
 const esc = (val) => {
-  const s = val == null ? '' : String(val);
-  if (s.includes(',') || s.includes('\n') || s.includes('"'))
-    return `"${s.replace(/"/g, '""')}"`;
-  return s;
+  const str = val == null ? '' : String(val);
+  if (str.includes(',') || str.includes('\n') || str.includes('"'))
+    return `"${str.replace(/"/g, '""')}"`;
+  return str;
 };
 
 // ─────────────────────────────────────────
@@ -188,6 +190,8 @@ const buildFilename = (chainKey, periodKey, customYear, customMonthNum) => {
 
 export default function CsvExportModal({ visible, onClose }) {
   const { t } = useI18n();   // ★ 多言語対応
+  const { colors } = useTheme();   // ★ テーマ対応
+  const s = useMemo(() => makeStyles(colors), [colors]);
 
   const now = new Date();
   const [chainKey,       setChainKey]      = useState('ALL');
@@ -332,7 +336,7 @@ export default function CsvExportModal({ visible, onClose }) {
               disabled={exporting}
             >
               {exporting
-                ? <ActivityIndicator size="small" color="#000" />
+                ? <ActivityIndicator size="small" color={colors.onPrimary} />
                 : <Text style={s.exportBtnText}>{t('csv_export_btn')}</Text>
               }
             </TouchableOpacity>
@@ -347,32 +351,32 @@ export default function CsvExportModal({ visible, onClose }) {
 // スタイル
 // ─────────────────────────────────────────
 
-const s = StyleSheet.create({
-  overlay:       { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)',
+const makeStyles = (c) => StyleSheet.create({
+  overlay:       { flex: 1, backgroundColor: c.overlaySoft,
                    justifyContent: 'center', alignItems: 'center' },
-  dialog:        { backgroundColor: '#1a1a1a', borderRadius: 16, padding: 24,
-                   width: '88%', borderWidth: 1, borderColor: '#333' },
-  title:         { fontSize: 18, fontWeight: 'bold', color: '#fff', marginBottom: 16 },
-  sectionLabel:  { fontSize: 12, color: '#555', marginBottom: 8, letterSpacing: 1 },
+  dialog:        { backgroundColor: c.bgCard, borderRadius: 16, padding: 24,
+                   width: '88%', borderWidth: 1, borderColor: c.borderLight },
+  title:         { fontSize: 18, fontWeight: 'bold', color: c.textPrimary, marginBottom: 16 },
+  sectionLabel:  { fontSize: 12, color: c.textHint, marginBottom: 8, letterSpacing: 1 },
   radioRow:      { flexDirection: 'row', alignItems: 'center', paddingVertical: 8 },
   radio:         { width: 18, height: 18, borderRadius: 9, borderWidth: 2,
-                   borderColor: '#555', marginRight: 12 },
-  radioSelected: { borderColor: '#00ff88', backgroundColor: '#00ff88' },
-  radioLabel:    { fontSize: 14, color: '#ccc' },
-  customInput:   { backgroundColor: '#111', borderWidth: 1, borderColor: '#444',
+                   borderColor: c.textHint, marginRight: 12 },
+  radioSelected: { borderColor: c.income, backgroundColor: c.income },
+  radioLabel:    { fontSize: 14, color: c.textBright },
+  customInput:   { backgroundColor: c.bgInput, borderWidth: 1, borderColor: c.textFaint,
                    borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8,
-                   color: '#fff', fontSize: 14, marginLeft: 30, marginBottom: 4 },
+                   color: c.textPrimary, fontSize: 14, marginLeft: 30, marginBottom: 4 },
   btnRow:        { flexDirection: 'row', gap: 12, marginTop: 20 },
-  cancelBtn:     { flex: 1, backgroundColor: '#2a2a2a', borderRadius: 10,
+  cancelBtn:     { flex: 1, backgroundColor: c.border, borderRadius: 10,
                    paddingVertical: 12, alignItems: 'center' },
-  cancelBtnText: { color: '#888', fontSize: 14 },
-  exportBtn:     { flex: 1, backgroundColor: '#00ff88', borderRadius: 10,
+  cancelBtnText: { color: c.textMuted, fontSize: 14 },
+  exportBtn:     { flex: 1, backgroundColor: c.income, borderRadius: 10,
                    paddingVertical: 12, alignItems: 'center' },
-  exportBtnText: { color: '#000', fontWeight: 'bold', fontSize: 14 },
+  exportBtnText: { color: c.onPrimary, fontWeight: 'bold', fontSize: 14 },
   monthPicker:   { flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
                    marginLeft: 30, marginBottom: 4, gap: 12 },
   arrowBtn:      { padding: 8 },
-  arrowText:     { color: '#00ff88', fontSize: 18, fontWeight: 'bold' },
-  monthLabel:    { fontSize: 16, color: '#fff', fontWeight: 'bold', minWidth: 120,
+  arrowText:     { color: c.income, fontSize: 18, fontWeight: 'bold' },
+  monthLabel:    { fontSize: 16, color: c.textPrimary, fontWeight: 'bold', minWidth: 120,
                    textAlign: 'center' },
 });

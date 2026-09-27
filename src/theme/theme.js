@@ -75,6 +75,7 @@ export const DARK = {
   bgModal:       '#0a0a0a',
   bgSubtle:      '#222222',
   overlay:       'rgba(0,0,0,0.85)',
+  overlaySoft:   'rgba(0,0,0,0.7)',    // モーダルの背面（CSV出力）
 
   // ボーダー
   border:        '#2a2a2a',
@@ -170,6 +171,7 @@ export const LIGHT = {
   bgModal:       '#d2d6dd',
   bgSubtle:      '#b6bcc6',
   overlay:       'rgba(0,0,0,0.55)',
+  overlaySoft:   'rgba(0,0,0,0.45)',   // モーダルの背面（CSV出力）
 
   // ボーダー
   border:        '#a8afbb',

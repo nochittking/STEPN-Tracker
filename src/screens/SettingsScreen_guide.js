@@ -8,16 +8,19 @@
  *   - バージョン表記を constants の APP_VERSION 参照に変更。
  */
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   SafeAreaView,
 } from 'react-native';
 import { APP_VERSION } from '../constants';
 import { useI18n } from '../i18n/i18n';   // ★ 多言語対応
+import { useTheme } from '../theme/theme';   // ★ テーマ対応
 
 export default function GuideScreen({ navigation }) {
   const { t } = useI18n();   // ★ 多言語対応
+  const { colors } = useTheme();   // ★ テーマ対応
+  const s = useMemo(() => makeStyles(colors), [colors]);
 
   return (
     <SafeAreaView style={s.container}>
@@ -49,12 +52,12 @@ function Section({ title, children }) {
   );
 }
 
-const s = StyleSheet.create({
-  container:    { flex: 1, backgroundColor: '#0a0a0a' },
+const makeStyles = (c) => StyleSheet.create({
+  container:    { flex: 1, backgroundColor: c.bg },
   scroll:       { flex: 1, padding: 16 },
-  title:        { fontSize: 20, fontWeight: 'bold', color: '#fff', marginBottom: 16 },
-  section:      { backgroundColor: '#1a1a1a', borderRadius: 12,
+  title:        { fontSize: 20, fontWeight: 'bold', color: c.textPrimary, marginBottom: 16 },
+  section:      { backgroundColor: c.bgCard, borderRadius: 12,
                   padding: 14, marginBottom: 12 },
-  sectionTitle: { fontSize: 14, fontWeight: 'bold', color: '#00ff88', marginBottom: 8 },
-  body:         { fontSize: 13, color: '#bbb', lineHeight: 20 },
+  sectionTitle: { fontSize: 14, fontWeight: 'bold', color: c.income, marginBottom: 8 },
+  body:         { fontSize: 13, color: c.textBody, lineHeight: 20 },
 });
