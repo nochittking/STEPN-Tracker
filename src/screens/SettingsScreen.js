@@ -366,7 +366,12 @@ const makeStyles = (c) => StyleSheet.create({
   chainRow:      { flexDirection: 'row', gap: 10 },
   chainBtn:      { flex: 1, paddingVertical: 10, borderRadius: 8,
                    borderWidth: 1.5, alignItems: 'center' },
-  chainBtnText:  { fontWeight: 'bold', fontSize: 13 },
+  // チェーン名。色は描画時にインラインで指定し、縁取りはテーマから受け取る
+  //   （明るい背景で鮮やかな色を読ませるための縁。ダークでは透明＝無効）
+  chainBtnText:  { fontWeight: 'bold', fontSize: 13,
+                   textShadowColor: c.chainTextShadow,
+                   textShadowOffset: { width: 0, height: 0 },
+                   textShadowRadius: c.chainTextShadowRadius },
 
   // フィールド
   fieldRow:      { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
