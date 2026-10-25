@@ -25,7 +25,7 @@ import {
 import { ConfirmItem, DonePhase } from './ImportScreen_item';
 import { makeStyles } from './ImportScreen_styles';
 import {
-  CHAIN_COLORS, CHAIN_TEXT, CATEGORY_LABELS, CATEGORY_GROUPS,
+  CHAIN_TEXT, CATEGORY_LABELS, CATEGORY_GROUPS,
   MB_QUALITY, GEM_COLORS, confLabel,
 } from './ImportScreen_constants';
 import { useI18n } from '../i18n/i18n';

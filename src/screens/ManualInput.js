@@ -219,7 +219,12 @@ export default function ManualInput({ navigation, route }) {
                 }]}
                 onPress={() => setChain(c)}
               >
-                <Text style={[s.chainBtnText, { color: chainColors[c] }]}>{c}</Text>
+                <Text style={[s.chainBtnText, {
+                  color: chainColors[c],
+                  textShadowColor: colors.chainTextShadow,
+                  textShadowOffset: { width: 0, height: 0 },
+                  textShadowRadius: colors.chainTextShadowRadius,
+                }]}>{c}</Text>
               </TouchableOpacity>
             ))}
           </View>

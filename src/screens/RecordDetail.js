@@ -236,12 +236,17 @@ export default function RecordDetail({ navigation, route }) {
                   <TouchableOpacity
                     key={c}
                     style={[s.chainBtn, {
-                      borderColor: CHAIN_COLORS[c],
-                      backgroundColor: chain === c ? CHAIN_COLORS[c] + '33' : 'transparent',
+                      borderColor: chainColors[c],
+                      backgroundColor: chain === c ? chainColors[c] + '33' : 'transparent',
                     }]}
                     onPress={() => setChain(c)}
                   >
-                    <Text style={[s.chainBtnText, { color: CHAIN_COLORS[c] }]}>{c}</Text>
+                    <Text style={[s.chainBtnText, {
+                      color: chainColors[c],
+                      textShadowColor: colors.chainTextShadow,
+                      textShadowOffset: { width: 0, height: 0 },
+                      textShadowRadius: colors.chainTextShadowRadius,
+                    }]}>{c}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
