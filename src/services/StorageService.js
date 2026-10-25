@@ -361,8 +361,27 @@ const updateRecord = async (recordId, ym, changes) => {
       changes.type = CATEGORY_TYPE[changes.category] || 'info';
     }
 
-    records[idx] = { ...before, ...changes, modified_at: now };
-    await _setMonthRecords(ym, records);
+    const updated = { ...before, ...changes, modified_at: now };
+
+    // timestamp を別の月に変更した場合は、保存先の月バケットごと移動する。
+    // （移動しないと records_旧YM の中に別月のレコードが残り、
+    //   月次集計・CSV出力・一覧の月切替がすべて狂う）
+    const newYm = updated.timestamp ? toYearMonth(updated.timestamp) : ym;
+
+    if (newYm !== ym) {
+      // 旧月から取り除く（サムネイル・画像ハッシュはそのまま引き継ぐので
+      // deleteRecords は使わない。あれはファイルごと消してしまう）
+      records.splice(idx, 1);
+      await _setMonthRecords(ym, records);
+
+      const target = await _getMonthRecords(newYm);
+      target.push(updated);
+      await _setMonthRecords(newYm, target);
+      await _addToIndex(newYm);
+    } else {
+      records[idx] = updated;
+      await _setMonthRecords(ym, records);
+    }
 
     // 修正履歴を追記
     await _appendModification({
@@ -371,7 +390,7 @@ const updateRecord = async (recordId, ym, changes) => {
       field_changes: fieldChanges,
     });
 
-    return records[idx];
+    return updated;
   } catch (e) {
     console.error('[StorageService] updateRecord error:', e);
     throw e;

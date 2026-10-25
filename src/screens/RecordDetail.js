@@ -96,8 +96,12 @@ export default function RecordDetail({ navigation, route }) {
           ? (StorageService.CATEGORY_TYPE?.[category] ?? type)
           : type;
 
+      // ⚠ 引数順は (recordId, ym, changes)。
+      //   以前は changes と ym が逆で、_getMonthRecords にオブジェクトが
+      //   渡り "Record not found" になっていた。
       await StorageService.updateRecord(
         record.id,
+        ym,
         {
           chain:      chain,
           gst_amount: parseFloat(gst)  || 0,
@@ -107,7 +111,6 @@ export default function RecordDetail({ navigation, route }) {
           type:       newType,
           extra,
         },
-        ym,
       );
       setIsEditing(false);
       navigation.goBack();
