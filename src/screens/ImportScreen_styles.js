@@ -86,6 +86,11 @@ export const makeStyles = (c) => StyleSheet.create({
   warningBox:   { backgroundColor: c.warningSurface, borderRadius: 8, padding: 8, marginBottom: 8, borderWidth: 1, borderColor: c.warning },
   warningText:  { color: c.warning, fontSize: 11 },
 
+  // OCR生テキスト（判定不可の調査用）
+  ocrBox:       { backgroundColor: c.bgInput, borderRadius: 8, padding: 8, marginBottom: 8, borderWidth: 1, borderColor: c.borderLight },
+  ocrToggle:    { color: c.textHint, fontSize: 11, textDecorationLine: 'underline' },
+  ocrText:      { color: c.textSecondary, fontSize: 10, marginTop: 6, lineHeight: 14 },
+
   // チェーン選択
   chainRow:     { flexDirection: 'row', alignItems: 'center', marginTop: 10, flexWrap: 'wrap', gap: 6 },
   chainLabel:   { color: c.textHint, fontSize: 12 },

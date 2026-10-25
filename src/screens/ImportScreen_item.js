@@ -30,6 +30,11 @@ function ConfirmItem({
   const conf     = r.confidence ?? 0;
   const confInfo = confLabel(conf, colors);
 
+  // 判定不可のときに OCR の生テキストを確認できるようにする。
+  // 新しい画面を判定できるようにするには、どんな文字列が読めているかが
+  // わからないと判定ルールが書けないため。
+  const [showOcr, setShowOcr] = useState(false);
+
   // 重複判定
   const dupType = item.duplicateType;  // 'exact' | 'similar' | null
   const isSkipped = item.skipSave;
@@ -221,6 +226,20 @@ function ConfirmItem({
           {r.warnings.map((w, i) => (
             <Text key={i} style={s.warningText}>⚠️ {w}</Text>
           ))}
+        </View>
+      )}
+
+      {/* OCR生テキスト（判定不可のときだけ・折りたたみ） */}
+      {r.category === 'unknown' && !!r.rawText && (
+        <View style={s.ocrBox}>
+          <TouchableOpacity onPress={() => setShowOcr((v) => !v)}>
+            <Text style={s.ocrToggle}>
+              {showOcr ? t('ocr_hide') : t('ocr_show')}
+            </Text>
+          </TouchableOpacity>
+          {showOcr && (
+            <Text style={s.ocrText} selectable>{r.rawText}</Text>
+          )}
         </View>
       )}
 

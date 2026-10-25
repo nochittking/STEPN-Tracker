@@ -234,6 +234,11 @@ function parseLevelUp(text, upper, lines) {
   const warnings = [];
   const extra = {};
 
+  // BOOST ダイアログ（残り時間を GST で即時完了させる追加コスト）かどうか。
+  // 通常のレベルアップ費用とは別の支出なので区別できるようにしておく。
+  const isBoost = /\bboost\b/i.test(text) && /level(?:ing)?\s*up/i.test(text);
+  if (isBoost) extra.is_boost = true;
+
   // アップ後レベル（Level up to LvX）
   const lvM = text.match(/Level\s+up\s+to\s+Lv\s*(\d+)/i)
            || text.match(/Lv\s*(\d+)/i)
@@ -246,9 +251,11 @@ function parseLevelUp(text, upper, lines) {
   const gstCost = extractGst(text) ?? 0;
   const gmtCost = extractGmt(text) ?? 0;
 
-  // 待機時間（XXX mins）
+  // 待機時間（XXX mins）※ BOOST ダイアログには出ない
   const waitM = text.match(/(\d+)\s*mins/i);
   if (waitM) extra.wait_mins = parseInt(waitM[1], 10);
+
+  if (isBoost && !gstCost) warnings.push('BOOSTコスト取得失敗');
 
   const confidence = levelAfter ? 1.0 : 0.4;
   return { gst_amount: gstCost, gmt_amount: gmtCost, extra, confidence, warnings };

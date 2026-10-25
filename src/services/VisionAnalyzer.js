@@ -132,6 +132,14 @@ function detectCategory(text, upper, lines) {
     return 'repair_durability';
   if (upper.includes('LEVEL UP') && upper.includes('TIME'))
     return 'level_up';
+  // BOOST 確認ダイアログ（レベルアップの残り時間を GST で即時完了させる）
+  //   BOOST / Lv 19 / to boost Leveling up / Cost 120 GST / CANCEL CONFIRM
+  //   "Leveling up" は "LEVEL UP" を含まず、"TIME" も出ないため
+  //   上の level_up 判定では拾えない（判定不可になっていた）。
+  //   コストは level_up と同じ GST 支出なので level_up として扱い、
+  //   通常のレベルアップ費用と区別できるよう extra.is_boost を立てる。
+  if (/\bboost\b/i.test(text) && /level(?:ing)?\s*up/i.test(text) && /\bcost\b/i.test(text))
+    return 'level_up';
   if (upper.includes('BUY') && (upper.includes('GMT') || upper.includes('GST')) &&
       !upper.includes('REVOKE') && !upper.includes('SELLING'))
     return 'marketplace_buy';

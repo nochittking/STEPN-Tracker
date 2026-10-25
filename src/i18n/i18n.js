@@ -298,6 +298,9 @@ const DICT = {
   chain_label:  { ja: 'チェーン：',       en: 'Chain: ' },
   chain_unset:  { ja: '← 未選択=仮保存',  en: '← unset = pending' },
   image_close:  { ja: 'タップで閉じる',   en: 'Tap to close' },
+  // OCR生テキスト（判定不可の調査用）
+  ocr_show:     { ja: '🔎 読み取れた文字を見る', en: '🔎 Show recognized text' },
+  ocr_hide:     { ja: '🔎 読み取れた文字を隠す', en: '🔎 Hide recognized text' },
 
   // ─────────────────────────────────────────
   // ImportScreen_item : ManualCategoryPicker
@@ -718,6 +721,7 @@ const DICT = {
   fld_level_after:      { ja: 'レベル(後)',    en: 'Level (After)' },
   fld_level_before:     { ja: 'レベル(前)',    en: 'Level (Before)' },
   fld_wait_mins:        { ja: '待機時間(分)',  en: 'Wait (min)' },
+  fld_is_boost:         { ja: 'BOOST(時間短縮)', en: 'Boost (skip wait)' },
   fld_socket_type:      { ja: 'ソケットタイプ', en: 'Socket Type' },
   fld_shoe_rarity:      { ja: '靴レアリティ',  en: 'Shoe Rarity' },
   fld_gem_type:         { ja: 'ジェムタイプ',  en: 'Gem Type' },
