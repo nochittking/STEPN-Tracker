@@ -666,17 +666,5 @@ async function _classifyGemLevel(uri, iconCrop) {
   }
 }
 
-function parseVipMembership(text, upper, lines) {
-  const warnings = [];
-  const extra = {};
-
-  // 有効期限（Due on MM/DD/YYYY）
-  const dueM = text.match(/Due\s+on\s+(\d{2}\/\d{2}\/\d{4})/i);
-  extra.valid_until = dueM ? dueM[1] : null;
-  if (!extra.valid_until) warnings.push('valid_until取得失敗');
-
-  warnings.push('vip_membershipは手動入力専用カテゴリ：金額は別途入力が必要');
-
-  const confidence = extra.valid_until ? 0.7 : 0.4;
-  return { gst_amount: 0, gmt_amount: 0, extra, confidence, warnings };
-}
+// ※ parseVipMembership は VisionAnalyzer_parsers.js へ移動した
+//   （テキストパーサーであってピクセル解析ではないため）

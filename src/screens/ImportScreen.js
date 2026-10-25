@@ -527,7 +527,7 @@ function ConfirmPhase({
         {['SOL', 'BNB', 'POL'].map((c) => (
           <TouchableOpacity
             key={c}
-            style={[s.bulkBtn, { backgroundColor: CHAIN_COLORS[c] }]}
+            style={[s.bulkBtn, { backgroundColor: chainColors[c] }]}
             onPress={() => onBulkChain(c)}
           >
             <Text style={[s.bulkBtnText, { color: CHAIN_TEXT[c] }]}>{t('bulk_all', c)}</Text>
