@@ -79,6 +79,7 @@ const deepMerge = (target, source) => {
  * 期間・チェーン・カテゴリでフィルタしてレコードを返す
  *
  * @param {object} options
+ *   ym         string   "YYYY_MM" この1ヶ月だけを対象にする
  *   from       Date     期間開始（UTC）
  *   to         Date     期間終了（UTC）
  *   chain      string   "SOL" | "BNB" | "POL"（省略で全チェーン）
@@ -86,10 +87,16 @@ const deepMerge = (target, source) => {
  *   categories string[] カテゴリ名の配列
  *   sort       string   "asc" | "desc"（timestamp ソート、デフォルト desc）
  * @returns {Record[]}
+ *
+ * ⚠ ym は後から追加したオプション。以前は未対応で、呼び出し側が
+ *   { ym } を渡しても黙って無視され「全月のレコード」が返っていた。
+ *   月をループしながらこれを呼ぶと、月数ぶんだけ同じレコードが
+ *   重複して返ってくる（記録一覧の二重表示の原因だった）。
  */
 const getRecords = async (options = {}) => {
   try {
     const {
+      ym: onlyYm,
       from,
       to,
       chain,
@@ -102,6 +109,7 @@ const getRecords = async (options = {}) => {
 
     // 対象月を絞り込む（全月ループを避ける）
     const targetMonths = index.filter((ym) => {
+      if (onlyYm && ym !== onlyYm) return false;
       if (!from && !to) return true;
       const monthStart = ymToDate(ym);
       const monthEnd   = new Date(monthStart);

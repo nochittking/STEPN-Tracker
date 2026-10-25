@@ -24,6 +24,12 @@ const CHAIN_TEXT = { SOL: '#000', BNB: '#000', POL: '#fff' };
 
 const TAB_KEYS = ['all', 'income', 'expense', 'info', 'listing', 'pending', 'history'];
 
+/** ISO タイムスタンプ → 月キー "YYYY_MM"（records_YYYY_MM のバケット名） */
+function ymFromTimestamp(ts) {
+  const d = new Date(ts);
+  return `${d.getFullYear()}_${String(d.getMonth() + 1).padStart(2, '0')}`;
+}
+
 // ─────────────────────────────────────────
 // RecordListScreen
 // ─────────────────────────────────────────
@@ -71,13 +77,13 @@ export default function RecordListScreen({ navigation, route }) {
         const p = await StorageService.getPendingRecords();
         setPending(p);
       } else if (activeTab !== 'history') {
-        // 全月のレコードを取得してフィルタリング
-        const index = await StorageService.getIndex();
-        let all = [];
-        for (const ym of index) {
-          const recs = await StorageService.getRecords({ ym });
-          all = all.concat(recs.map((r, i) => ({ ...r, _ukey: r._ukey ?? `${r.id}_${all.length + i}` })));
-        }
+        // 全月のレコードを取得してフィルタリング。
+        // getRecords() は引数なしでインデックス上の全月を1回で返す。
+        // ⚠ 以前はここで月ごとに getRecords({ ym }) を呼んでいたが、
+        //   当時の getRecords は ym を無視して毎回「全月」を返していたため、
+        //   月数ぶんだけ同じレコードが並ぶ（＝二重表示）状態になっていた。
+        //   月でループして呼び出すことは二度としないこと。
+        const all = await StorageService.getRecords();
         // typeフィルタ（ALLの場合はpending以外全部）
         let filtered = activeTab === 'all'
           ? all.filter((r) => r.type !== 'pending')
@@ -128,15 +134,17 @@ export default function RecordListScreen({ navigation, route }) {
           style: 'destructive',
           onPress: async () => {
             try {
-              const index = await StorageService.getIndex();
-              for (const ym of index) {
-                const recs = await StorageService.getRecords({ ym });
-                const toDelete = recs
-                  .filter((r) => selected.has(r.id))
-                  .map((r) => r.id);
-                if (toDelete.length > 0) {
-                  await StorageService.deleteRecords(toDelete, ym);
-                }
+              // 選択されたレコードを、それぞれが属する月ごとにまとめて削除する。
+              // deleteRecords は (ids, ym) で「その月のバケット」から消すので、
+              // レコード自身の timestamp から月キーを引くこと。
+              const byYm = {};
+              for (const r of records) {
+                if (!selected.has(r.id)) continue;
+                const ym = ymFromTimestamp(r.timestamp);
+                (byYm[ym] ??= []).push(r.id);
+              }
+              for (const [ym, ids] of Object.entries(byYm)) {
+                await StorageService.deleteRecords(ids, ym);
               }
               setSelectMode(false);
               setSelected(new Set());
@@ -322,7 +330,11 @@ export default function RecordListScreen({ navigation, route }) {
           ) : (
             <FlatList
               data={activeTab === 'pending' ? pending : records}
-              keyExtractor={(item) => item._ukey ?? item.id}
+              // ⚠ _ukey という「id + 連番」の擬似キーを使っていたが、あれは
+              //   二重表示のときに React の重複キー警告だけを黙らせる
+              //   対症療法だった。id は一意なので id をそのまま使い、
+              //   万一また重複したら警告で気づけるようにしておく。
+              keyExtractor={(item) => item.id}
               contentContainerStyle={s.listContent}
               renderItem={({ item }) =>
                 activeTab === 'pending' ? (
